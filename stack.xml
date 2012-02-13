@@ -1,0 +1,9 @@
+<stack>
+  <description brief="velodyne_utils">velodyne_utils</description>
+  <author>Maintained by Jack O'Quin</author>
+  <license>BSD</license>  
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/velodyne_utils</url>
+  <depend stack="ros" />
+
+</stack>
