@@ -10,7 +10,6 @@
  * $ Id: 02/14/2012 11:23:39 AM piyushk $
  */
 
-
 #ifndef CALIBRATIONUTILITIES_PQBF1LWD
 #define CALIBRATIONUTILITIES_PQBF1LWD
 
@@ -24,13 +23,8 @@ namespace velodyne {
 
   template <typename PointT>
   void scanToPointCloud(const velodyne_msgs::VelodyneScan& velodyne_scan, 
-      pcl::PointCloud<PointT>& cloud);
-
-  template <typename PointT>
-  void scanToPointCloud(const velodyne_msgs::VelodyneScan& velodyne_scan, 
       const velodyne::Calibration& calibration, pcl::PointCloud<PointT>& cloud);
 
-  void getDefaultCalibration(velodyne::Calibration& calibration);
   void readCalibrationFromFile(const std::string& calibration_file, 
       velodyne::Calibration& calibration);
   void writeCalibrationToFile(const std::string& calibration_file, 
