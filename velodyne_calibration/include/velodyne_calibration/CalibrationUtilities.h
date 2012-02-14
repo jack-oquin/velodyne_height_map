@@ -30,6 +30,8 @@ namespace velodyne {
   void writeCalibrationToFile(const std::string& calibration_file, 
       const velodyne::Calibration& calibration);
 
+  void writeTestCalibrationFile(const std::string& test_calibration_file);
+
 }
 
 #endif /* end of include guard: CALIBRATIONUTILITIES_PQBF1LWD */
