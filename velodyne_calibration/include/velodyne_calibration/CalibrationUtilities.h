@@ -14,7 +14,7 @@
 #define CALIBRATIONUTILITIES_PQBF1LWD
 
 #include <string>
-#include <pcl/pcl.h>
+#include <pcl/point_cloud.h>
 
 #include <velodyne_msgs/VelodyneScan.h>
 #include <velodyne_calibration/Calibration.h>

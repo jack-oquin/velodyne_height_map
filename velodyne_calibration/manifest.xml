@@ -9,16 +9,19 @@
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/velodyne_calibration</url>
 
-
   <rosdep name="qt4"/>
+  <rosdep name="yaml-cpp"/>
 
   <!-- rosbuild1 -->
   <depend package="qt_build"/>
   <depend package="roscpp"/>
-  
+  <depend package="pcl"/>
+  <depend package="velodyne_msgs"/>
+
+  <!--
   <rosbuild2>
     <depend package="qt_build"/>
     <depend package="roscpp"/>
   </rosbuild2>
-  
+  -->
 </package>

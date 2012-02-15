@@ -31,7 +31,7 @@ namespace velodyne {
     float dist_correction;
     float vert_offset_correction;
     float horiz_offset_correction;
-    IntensityCorrection intensity_correction
+    IntensityCorrection intensity_correction;
   };
 
   struct Calibration {

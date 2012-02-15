@@ -10,6 +10,11 @@
  * $ Id: 02/14/2012 11:36:36 AM piyushk $
  */
 
+#include <fstream>
+#include <string>
+#include <velodyne_calibration/CalibrationUtilities.h>
+#include <yaml-cpp/yaml.h>
+
 namespace velodyne {
 
   const std::string NUM_LASERS = "num_lasers";
@@ -65,6 +70,7 @@ namespace velodyne {
     out << YAML::Key << B << YAML::Value << intensity_correction.b;
     out << YAML::Key << C << YAML::Value << intensity_correction.c;
     out << YAML::Key << D << YAML::Value << intensity_correction.d;
+    return out;
   }
 
   YAML::Emitter& operator << (YAML::Emitter& out, const std::pair<int, LaserCorrection> correction) {
@@ -75,6 +81,7 @@ namespace velodyne {
     out << YAML::Key << VERT_OFFSET_CORRECTION << YAML::Value << correction.second.vert_offset_correction;
     out << YAML::Key << HORIZ_OFFSET_CORRECTION << YAML::Value << correction.second.horiz_offset_correction;
     out << YAML::Key << INTENSITY << YAML::Value << YAML::BeginSeq << correction.second.intensity_correction << YAML::EndSeq;
+    return out;
   }
 
   YAML::Emitter& operator << (YAML::Emitter& out, const Calibration& calibration) {
@@ -82,11 +89,12 @@ namespace velodyne {
     out << YAML::Key << PITCH << YAML::Value << calibration.pitch;
     out << YAML::Key << ROLL << YAML::Value << calibration.roll;
     out << YAML::Key << LASERS << YAML::BeginSeq;
-    for (std::map<int, LaserCorrection>::Iterator it = calibration.laser_corrections.begin();
-        it != calibration.laser_correction.end(); it++) {
+    for (std::map<int, LaserCorrection>::const_iterator it = calibration.laser_corrections.begin();
+        it != calibration.laser_corrections.end(); it++) {
       out << *it; 
     }
     out << YAML::EndSeq;
+    return out;
   }
 
   void readCalibrationFromFile(const std::string& calibration_file, 
@@ -115,10 +123,10 @@ namespace velodyne {
     test_calibration.pitch = test_calibration.roll = 0;
     for (int i = 0; i < test_calibration.num_lasers; i++) {
       std::pair<int, LaserCorrection> correction(i, LaserCorrection());
-      test_calibration.insert(correction);
+      test_calibration.laser_corrections.insert(correction);
     }
 
-    writeCalibrationFile(test_calibration_file, calibration_file);
+    writeCalibrationToFile(test_calibration_file, test_calibration);
 
   }
   
