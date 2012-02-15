@@ -138,5 +138,73 @@ namespace velodyne {
     writeCalibrationToFile(test_calibration_file, test_calibration);
 
   }
+
+  /** \brief convert raw packet to laserscan format */
+  void packet2scans(const raw_packet_t *raw, std::vector<laserscan_t>& scans) {
+    int index = 0;                      // current scans entry
+    uint16_t revolution = raw->revolution; // current revolution (mod 65536)
+
+    for (int i = 0; i < BLOCKS_PER_PACKET; i++) {
+        int bank_origin = 32;
+        correction_angles *corrections = upper_;
+        if (raw->blocks[i].header == LOWER_BANK)
+          {
+            bank_origin = 0;
+            corrections = lower_;
+          }
+
+        float rotation = angles::from_degrees(raw->blocks[i].rotation
+                                              * ROTATION_RESOLUTION);
+
+        for (int j = 0, k = 0; j < SCANS_PER_BLOCK; j++, k += RAW_SCAN_SIZE)
+          {
+            scans[index].laser_number = j + bank_origin;
+
+            //if(!corrections[j].enabled) 
+            //  do what???
+
+            // beware: the Velodyne turns clockwise
+            scans[index].heading = 
+              angles::normalize_angle(-(rotation - corrections[j].rotational));
+            scans[index].pitch   = corrections[j].vertical;
+      
+            union two_bytes tmp;
+            tmp.bytes[0] = raw->blocks[i].data[k];
+            tmp.bytes[1] = raw->blocks[i].data[k+1];
+
+            // convert range to meters and apply quadratic correction
+            scans[index].range = tmp.uint * DISTANCE_RESOLUTION;
+            scans[index].range =
+              (corrections[j].offset1 * scans[index].range * scans[index].range
+               + corrections[j].offset2 * scans[index].range
+               + corrections[j].offset3);
+      
+            scans[index].intensity = raw->blocks[i].data[k+2];
+            scans[index].revolution = revolution;
+
+            ++index;
+          }
+      }
+
+    ROS_ASSERT(index == SCANS_PER_PACKET);
+  }
+  /** \brief Process Velodyne packet. */
+  void processPacket(const velodyne_msgs::VelodynePacket *pkt) {
+    // unpack scans from the raw packet
+    std::vector<laserscan_t> scans;
+    scans.resize(SCANS_PER_PACKET);
+    packet2scans((raw_packet_t *) &pkt->data[0], scans);
+  }
+
+  template <typename PointT>
+  void scanToPointCloud(const velodyne_msgs::VelodyneScan& velodyne_scan, 
+      const velodyne::Calibration& calibration, pcl::PointCloud<PointT>& cloud) {
+
+    // invoke callback for each packet
+    for (unsigned i = 0; i < rawScan_->packets.size(); ++i) {
+      processPacket(&rawScan_->packets[i]);
+    }
+
+  }
   
 } /* velodyne */
