@@ -62,7 +62,13 @@ file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINK
 # Binaries
 ##############################################################################
 
-rosbuild_add_executable(velodyne_calibration ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP})
-target_link_libraries(velodyne_calibration ${QT_LIBRARIES})
+#rosbuild_add_executable(velodyne_calibration ${QT_SOURCES} ${QT_RESOURCES_CPP} ${QT_FORMS_HPP} ${QT_MOC_HPP})
+#target_link_libraries(velodyne_calibration ${QT_LIBRARIES})
 
 rosbuild_add_library(calibration_utilities src/lib/CalibrationUtilities.cc)
+target_link_libraries(calibration_utilities yaml-cpp)
+
+rosbuild_add_executable(calibration_test src/calibration_test.cpp)
+target_link_libraries(calibration_test calibration_utilities)
+#target_link_libraries(calibration_test yaml-cpp)
+

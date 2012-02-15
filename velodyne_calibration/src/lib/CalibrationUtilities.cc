@@ -10,6 +10,7 @@
  * $ Id: 02/14/2012 11:36:36 AM piyushk $
  */
 
+#include <iostream>
 #include <fstream>
 #include <string>
 #include <velodyne_calibration/CalibrationUtilities.h>
@@ -48,7 +49,7 @@ namespace velodyne {
     node[VERT_OFFSET_CORRECTION] >> correction.second.vert_offset_correction;
     node[HORIZ_OFFSET_CORRECTION] >> correction.second.horiz_offset_correction;
     const YAML::Node& intensity = node[INTENSITY];
-    intensity >> correction.second.intensity_correction;
+    intensity[0] >> correction.second.intensity_correction;
   }
 
   void operator >> (const YAML::Node& node, Calibration& calibration) {
@@ -60,20 +61,23 @@ namespace velodyne {
     calibration.laser_corrections.clear();
     for (int i = 0; i < calibration.num_lasers; i++) {
       std::pair<int, LaserCorrection> correction;
-      lasers >> correction;
+      lasers[i] >> correction;
       calibration.laser_corrections.insert(correction);     
     }
   }
 
   YAML::Emitter& operator << (YAML::Emitter& out, const IntensityCorrection& intensity_correction) {
+    out << YAML::BeginMap;
     out << YAML::Key << A << YAML::Value << intensity_correction.a;
     out << YAML::Key << B << YAML::Value << intensity_correction.b;
     out << YAML::Key << C << YAML::Value << intensity_correction.c;
     out << YAML::Key << D << YAML::Value << intensity_correction.d;
+    out << YAML::EndMap;
     return out;
   }
 
   YAML::Emitter& operator << (YAML::Emitter& out, const std::pair<int, LaserCorrection> correction) {
+    out << YAML::BeginMap;
     out << YAML::Key << LASER_ID << YAML::Value << correction.first;
     out << YAML::Key << ROT_CORRECTION << YAML::Value << correction.second.rot_correction;
     out << YAML::Key << VERT_CORRECTION << YAML::Value << correction.second.vert_correction;
@@ -81,19 +85,24 @@ namespace velodyne {
     out << YAML::Key << VERT_OFFSET_CORRECTION << YAML::Value << correction.second.vert_offset_correction;
     out << YAML::Key << HORIZ_OFFSET_CORRECTION << YAML::Value << correction.second.horiz_offset_correction;
     out << YAML::Key << INTENSITY << YAML::Value << YAML::BeginSeq << correction.second.intensity_correction << YAML::EndSeq;
+    out << YAML::EndMap;
     return out;
   }
 
   YAML::Emitter& operator << (YAML::Emitter& out, const Calibration& calibration) {
+    out << YAML::BeginMap;
     out << YAML::Key << NUM_LASERS << YAML::Value << calibration.num_lasers;
     out << YAML::Key << PITCH << YAML::Value << calibration.pitch;
     out << YAML::Key << ROLL << YAML::Value << calibration.roll;
-    out << YAML::Key << LASERS << YAML::BeginSeq;
+    out << YAML::Key << LASERS << YAML::Value << YAML::BeginSeq;
     for (std::map<int, LaserCorrection>::const_iterator it = calibration.laser_corrections.begin();
-        it != calibration.laser_corrections.end(); it++) {
+         it != calibration.laser_corrections.end(); it++) {
       out << *it; 
+      //out << YAML::BeginMap << YAML::Key << NUM_LASERS << YAML::Value << calibration.num_lasers << YAML::EndMap;
+      //out << "test";
     }
     out << YAML::EndSeq;
+    out << YAML::EndMap;
     return out;
   }
 
