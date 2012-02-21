@@ -36,7 +36,7 @@
 #include <pcl_ros/point_cloud.h>
 #include <velodyne_msgs/VelodyneScan.h>
 #include <velodyne_pointcloud/point_types.h>
-#include <velodyne_calibration/calibration.h>
+#include <velodyne_pointcloud/calibration.h>
 
 namespace velodyne_rawdata
 {
@@ -153,7 +153,7 @@ namespace velodyne_rawdata
     /** 
      * Calibration file
      */
-    velodyne_calibration::Calibration calibration_;
+    velodyne_pointcloud::Calibration calibration_;
 
     /** in-line test whether a point is in range */
     bool pointInRange(float range)

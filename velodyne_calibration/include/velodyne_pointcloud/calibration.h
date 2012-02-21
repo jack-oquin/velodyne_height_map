@@ -1,5 +1,5 @@
 /**
- * \file  Calibration.h 
+ * \file  calibration.h 
  *
  * \author  Piyush Khandelwal (piyushk@cs.utexas.edu)
  * Copyright (C) 2012, Austin Robot Technology, University of Texas at Austin
@@ -26,6 +26,8 @@ namespace velodyne_pointcloud {
     float rot_correction;
     float vert_correction;
     float dist_correction;
+    float dist_correction_x;
+    float dist_correction_y;
     float vert_offset_correction;
     float horiz_offset_correction;
     int max_intensity;
@@ -49,13 +51,15 @@ namespace velodyne_pointcloud {
     std::map<int, laser_correction> laser_corrections;
     bool initialized;
 
-    Calibration();
+    Calibration() : initialized(false) {}
     Calibration(const std::string& calibration_file) {
       read(calibration_file);
     }
     void read(const std::string& calibration_file);
     void write(const std::string& calibration_file);
-    bool isInitialized();
+    bool isInitialized() {
+      return initialized;
+    }
   };
   
 } /* velodyne_pointcloud */
