@@ -102,9 +102,12 @@ namespace velodyne {
    */
   typedef struct laserscan
   {
-    float range;                        ///< in meters
-    float heading;                      ///< in radians
-    float pitch;                        ///< in radians
+    //float range;                        ///< in meters
+    //float heading;                      ///< in radians
+    //float pitch;                        ///< in radians
+    float x;
+    float y;
+    float z;
     uint16_t revolution;
     uint8_t  laser_number;
     uint8_t  intensity;

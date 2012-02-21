@@ -25,13 +25,22 @@ namespace velodyne {
 
   /* calibration values for a single laser */
   struct LaserCorrection {
-    /* new parameters in db.xml provided by Velodyne */
+    /* new parameters in db.xml provided by Velodyne S2.1 Revision D 2011*/
+    /* http://velodynelidar.com/lidar/products/manual/63-HDL64E%20S2%20Manual_Rev%20D_2011_web.pdf */
     float rot_correction;
+    float cos_rot_correction; // cached value
+    float sin_rot_correction; // cached value
     float vert_correction;
+    float cos_vert_correction; // cached value
+    float sin_vert_correction; // cached value
     float dist_correction;
     float vert_offset_correction;
     float horiz_offset_correction;
-    IntensityCorrection intensity_correction;
+    int max_intensity;
+    int min_intensity;
+    float focal_distance;
+    float focal_slope;
+    //IntensityCorrection intensity_correction;
   };
 
   struct Calibration {
@@ -40,7 +49,7 @@ namespace velodyne {
     float roll;
     std::map<int, LaserCorrection> laser_corrections;
   };
-  
+  `
 } /* velodyne */
 
 
