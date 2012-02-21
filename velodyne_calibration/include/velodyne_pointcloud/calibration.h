@@ -20,7 +20,7 @@ namespace velodyne_pointcloud {
    * parameters for Velodyne HDL-64E S2.1
    * http://velodynelidar.com/lidar/products/manual/63-HDL64E%20S2%20Manual_Rev%20D_2011_web.pdf
    **/
-  struct laser_correction {
+  struct LaserCorrection {
 
     /** parameters in db.xml */
     float rot_correction;
@@ -48,7 +48,7 @@ namespace velodyne_pointcloud {
     int num_lasers;
     float pitch;
     float roll;
-    std::map<int, laser_correction> laser_corrections;
+    std::map<int, LaserCorrection> laser_corrections;
     bool initialized;
 
     Calibration() : initialized(false) {}

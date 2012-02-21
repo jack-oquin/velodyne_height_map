@@ -142,7 +142,7 @@ namespace velodyne_rawdata
   private:
 
     /** configuration parameters */
-    std::string anglesFile_;            ///< correction angles file name
+    std::string calibration_file_;            ///< correction angles file name
 
     typedef struct {
       double max_range;                ///< maximum range to publish
@@ -154,6 +154,8 @@ namespace velodyne_rawdata
      * Calibration file
      */
     velodyne_pointcloud::Calibration calibration_;
+    std::vector<float> cos_rot_table_;
+    std::vector<float> sin_rot_table_;
 
     /** in-line test whether a point is in range */
     bool pointInRange(float range)

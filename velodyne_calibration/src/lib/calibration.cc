@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
+#include <cmath>
 #include <yaml-cpp/yaml.h>
 
 #include <velodyne_pointcloud/calibration.h>
@@ -36,7 +37,7 @@ namespace velodyne_pointcloud {
   const std::string FOCAL_DISTANCE = "focal_distance";
   const std::string FOCAL_SLOPE = "focal_slope";
 
-  void operator >> (const YAML::Node& node, std::pair<int, laser_correction>& correction) {
+  void operator >> (const YAML::Node& node, std::pair<int, LaserCorrection>& correction) {
     node[LASER_ID] >> correction.first;
     node[ROT_CORRECTION] >> correction.second.rot_correction;
     node[VERT_CORRECTION] >> correction.second.vert_correction;
@@ -49,6 +50,12 @@ namespace velodyne_pointcloud {
     node[MIN_INTENSITY] >> correction.second.min_intensity;
     node[FOCAL_DISTANCE] >> correction.second.focal_distance;
     node[FOCAL_SLOPE] >> correction.second.focal_slope;
+
+    // Calculate cached values
+    correction.second.cos_rot_correction = cosf(correction.second.rot_correction);
+    correction.second.sin_rot_correction = sinf(correction.second.rot_correction);
+    correction.second.cos_vert_correction = cosf(correction.second.vert_correction);
+    correction.second.sin_vert_correction = sinf(correction.second.vert_correction);
   }
 
   void operator >> (const YAML::Node& node, Calibration& calibration) {
@@ -59,13 +66,13 @@ namespace velodyne_pointcloud {
     const YAML::Node& lasers = node[LASERS];
     calibration.laser_corrections.clear();
     for (int i = 0; i < calibration.num_lasers; i++) {
-      std::pair<int, laser_correction> correction;
+      std::pair<int, LaserCorrection> correction;
       lasers[i] >> correction;
       calibration.laser_corrections.insert(correction);     
     }
   }
 
-  YAML::Emitter& operator << (YAML::Emitter& out, const std::pair<int, laser_correction> correction) {
+  YAML::Emitter& operator << (YAML::Emitter& out, const std::pair<int, LaserCorrection> correction) {
     out << YAML::BeginMap;
     out << YAML::Key << LASER_ID << YAML::Value << correction.first;
     out << YAML::Key << ROT_CORRECTION << YAML::Value << correction.second.rot_correction;
@@ -89,7 +96,7 @@ namespace velodyne_pointcloud {
     out << YAML::Key << PITCH << YAML::Value << calibration.pitch;
     out << YAML::Key << ROLL << YAML::Value << calibration.roll;
     out << YAML::Key << LASERS << YAML::Value << YAML::BeginSeq;
-    for (std::map<int, laser_correction>::const_iterator it = calibration.laser_corrections.begin();
+    for (std::map<int, LaserCorrection>::const_iterator it = calibration.laser_corrections.begin();
          it != calibration.laser_corrections.end(); it++) {
       out << *it; 
     }

@@ -68,6 +68,9 @@ file(GLOB_RECURSE QT_SOURCES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} FOLLOW_SYMLINK
 rosbuild_add_library(calibration src/lib/calibration.cc)
 target_link_libraries(calibration yaml-cpp)
 
+rosbuild_add_library(velodyne_rawdata src/lib/rawdata.cc)
+target_link_libraries(velodyne_rawdata calibration)
+
 #rosbuild_add_executable(calibration_test src/calibration_test.cpp)
 #target_link_libraries(calibration_test calibration_utilities)
 #target_link_libraries(calibration_test yaml-cpp)

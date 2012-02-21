@@ -15,8 +15,9 @@
   <!-- rosbuild1 -->
   <depend package="qt_build"/>
   <depend package="roscpp"/>
-  <depend package="pcl"/>
+  <depend package="pcl_ros"/>
   <depend package="velodyne_msgs"/>
+  <depend package="angles"/>
 
   <!--
   <rosbuild2>
