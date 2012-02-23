@@ -1,5 +1,9 @@
 <stack>
-  <description brief="velodyne_utils">velodyne_utils</description>
+  <description brief="Velodyne 3D LIDAR utilities">
+
+    ROS tools and utilities for Velodyne 3D LIDARs.
+
+  </description>
   <author>Maintained by Jack O'Quin</author>
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
