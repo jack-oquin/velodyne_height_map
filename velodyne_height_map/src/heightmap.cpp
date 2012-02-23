@@ -37,54 +37,31 @@ namespace velodyne_height_map {
 #define MIN(x,y) ((x) < (y) ? (x) : (y))
 #define MAX(x,y) ((x) > (y) ? (x) : (y))
 
-HeightMap::HeightMap(ros::NodeHandle node, ros::NodeHandle nh)
+HeightMap::HeightMap(ros::NodeHandle node, ros::NodeHandle priv_nh)
 {
-  // Set parameter defaults
-  grid_dim_ = 320;
-  m_per_cell_ = 0.5;
-  height_diff_threshold_ = 0.25;
-  full_clouds_ = false;
+  // get parameters using private node handle
+  priv_nh.param("grid_dim", grid_dim_, 320);
+  priv_nh.param("m_per_cell", m_per_cell_, 0.5);
+  priv_nh.param("height_threshold", height_diff_threshold_, 0.25);
+  priv_nh.param("full_clouds", full_clouds_, false);
   
-  // Get a node handle with /velodyne_height_map prefix
-  // Load parameters changes (if any)
-  nh.getParam("grid_dim", grid_dim_);
-  nh.getParam("m_per_cell", m_per_cell_);
-  nh.getParam("height_threshold", height_diff_threshold_);  
-  nh.getParam("full_clouds", full_clouds_);
-  
-  ROS_INFO("velodyne_height_map parameters: %i , %f, %f, %i",
-           grid_dim_,m_per_cell_,height_diff_threshold_,full_clouds_);
+  ROS_INFO_STREAM("height map parameters: "
+                  << grid_dim_ << "x" << grid_dim_ << ", "
+                  << m_per_cell_ << "m cells, "
+                  << height_diff_threshold_ << "m threshold, "
+                  << (full_clouds_? "": "not ") << "publishing full clouds");
 
-#if 0
-  // preallocate the anticipated amount of space for the point clouds
-  obstacle_cloud_.points.resize(velodyne::SCANS_PER_REV);
-  //obstacle_cloud_.channels.resize(1);
-  //obstacle_cloud_.channels[0].name = "intensity";
-  //obstacle_cloud_.channels[0].values.resize(velodyne::SCANS_PER_REV);
-
-  clear_cloud_.points.resize(velodyne::SCANS_PER_REV);
-  //clear_cloud_.channels.resize(1);
-  //clear_cloud_.channels[0].name = "intensity";
-  //clear_cloud_.channels[0].values.resize(velodyne::SCANS_PER_REV);
-#endif
-  
   // Set up publishers  
-  obstacle_publisher_ =
-    node.advertise<VPointCloud>("velodyne_obstacles",1);
-  clear_publisher_ =
-    node.advertise<VPointCloud>("velodyne_clear",1);  
+  obstacle_publisher_ = node.advertise<VPointCloud>("velodyne_obstacles",1);
+  clear_publisher_ = node.advertise<VPointCloud>("velodyne_clear",1);  
 
-  // subscribe to velodyne data
-  velodyne_scan_ =
-    node.subscribe("velodyne_points", 10,
-                   &HeightMap::processData, this,
-                   ros::TransportHints().tcpNoDelay(true));
-
+  // subscribe to Velodyne data points
+  velodyne_scan_ = node.subscribe("velodyne_points", 10,
+                                  &HeightMap::processData, this,
+                                  ros::TransportHints().tcpNoDelay(true));
 }
 
-HeightMap::~HeightMap()
-{
-}
+HeightMap::~HeightMap() {}
 
 void HeightMap::constructFullClouds(const VPointCloud::ConstPtr &scan,
                                     unsigned npoints, size_t &obs_count,
