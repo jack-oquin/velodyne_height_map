@@ -40,10 +40,10 @@ namespace velodyne_height_map {
 HeightMap::HeightMap(ros::NodeHandle node, ros::NodeHandle priv_nh)
 {
   // get parameters using private node handle
-  priv_nh.param("grid_dim", grid_dim_, 320);
-  priv_nh.param("m_per_cell", m_per_cell_, 0.5);
-  priv_nh.param("height_threshold", height_diff_threshold_, 0.25);
+  priv_nh.param("cell_size", m_per_cell_, 0.5);
   priv_nh.param("full_clouds", full_clouds_, false);
+  priv_nh.param("grid_dimensions", grid_dim_, 320);
+  priv_nh.param("height_threshold", height_diff_threshold_, 0.25);
   
   ROS_INFO_STREAM("height map parameters: "
                   << grid_dim_ << "x" << grid_dim_ << ", "
