@@ -4,7 +4,9 @@
   <license>BSD</license>  
   <review status="unreviewed" notes=""/>
   <url>http://ros.org/wiki/velodyne_utils</url>
+
   <depend stack="ros" />
   <depend stack="qt_ros" />
+  <depend stack="velodyne" />
 
 </stack>
