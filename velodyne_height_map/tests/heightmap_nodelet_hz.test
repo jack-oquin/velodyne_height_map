@@ -1,0 +1,46 @@
+<!-- -*- mode: XML -*- -->
+<!-- rostest of publishing a height map PointCloud from PCAP data.
+
+     Uses rostest, because a running roscore is required.
+
+     $Id$
+  -->
+
+<launch>
+
+  <!-- start nodelet manager and driver nodelets -->
+  <include file="$(find velodyne_driver)/launch/nodelet_manager.launch">
+    <arg name="pcap"
+           value="$(find velodyne_pointcloud)/tests/class.pcap"/>
+  </include>
+
+  <!-- start cloud nodelet using test calibration file -->
+  <include file="$(find velodyne_pointcloud)/launch/cloud_nodelet.launch">
+    <arg name="calibration"
+         value="$(find velodyne_pointcloud)/tests/angles.config"/>
+  </include>
+
+  <!-- start heightmap nodelet -->
+  <include file="$(find velodyne_height_map)/launch/heightmap_nodelet.launch"/>
+
+  <!-- verify obstacles point cloud publication rate -->
+  <test test-name="heightmap_nodelet_obstacles_hz_test" pkg="rostest"
+        type="hztest" name="hztest1" >
+    <param name="hz" value="9.75" />
+    <param name="hzerror" value="0.75" />
+    <param name="test_duration" value="10.0" />    
+    <param name="topic" value="velodyne_obstacles" />  
+    <param name="wait_time" value="2.0" />  
+  </test>
+
+  <!-- verify clear point cloud publication rate -->
+  <test test-name="heightmap_nodelet_clear_hz_test" pkg="rostest"
+        type="hztest" name="hztest2" >
+    <param name="hz" value="9.75" />
+    <param name="hzerror" value="0.75" />
+    <param name="test_duration" value="10.0" />    
+    <param name="topic" value="velodyne_clear" />  
+    <param name="wait_time" value="2.0" />  
+  </test>
+
+</launch>

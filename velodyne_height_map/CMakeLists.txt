@@ -16,13 +16,21 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-#uncomment if you have defined messages
-#rosbuild_genmsg()
-#uncomment if you have defined services
-#rosbuild_gensrv()
-
+# deprecated version
 rosbuild_add_executable(height_map
   src/height_map_node.cpp src/height_map.cpp)
 
+# deprecated version
 rosbuild_add_library(height_map_nodelet
   src/nodelet.cpp src/height_map.cpp)
+
+rosbuild_add_library(heightmap_nodelet
+  src/heightmap_nodelet.cpp src/heightmap.cpp)
+
+# unit tests
+add_subdirectory(tests)
+#rosbuild_add_rostest(tests/heightmap_node_hz.test)
+rosbuild_add_rostest(tests/heightmap_nodelet_hz.test)
+
+# parse check all the launch/*.launch files
+rosbuild_add_roslaunch_check(launch)
