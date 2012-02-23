@@ -16,20 +16,20 @@ set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
 #set the default path for built libraries to the "lib" directory
 set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 
-# deprecated version
-rosbuild_add_executable(height_map
-  src/height_map_node.cpp src/height_map.cpp)
-
-# deprecated version
-rosbuild_add_library(height_map_nodelet
-  src/nodelet.cpp src/height_map.cpp)
-
+rosbuild_add_executable(heightmap_node
+  src/heightmap_node.cpp src/heightmap.cpp)
 rosbuild_add_library(heightmap_nodelet
   src/heightmap_nodelet.cpp src/heightmap.cpp)
 
+# deprecated versions
+rosbuild_add_executable(height_map
+  src/height_map_node.cpp src/height_map.cpp)
+rosbuild_add_library(height_map_nodelet
+  src/nodelet.cpp src/height_map.cpp)
+
 # unit tests
 add_subdirectory(tests)
-#rosbuild_add_rostest(tests/heightmap_node_hz.test)
+rosbuild_add_rostest(tests/heightmap_node_hz.test)
 rosbuild_add_rostest(tests/heightmap_nodelet_hz.test)
 
 # parse check all the launch/*.launch files

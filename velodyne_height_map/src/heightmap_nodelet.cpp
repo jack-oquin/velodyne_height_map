@@ -8,21 +8,8 @@
 
 /** @file
 
-   This ROS nodelet produces a point cloud containing all points that
-   lie on an obstacle larger than HEIGHT_DIFF_THRESHOLD in height.
+    @brief ROS nodelet for detecting obstacles in a point cloud.
 
-Subscribes:
-
-- @b velodyne/pointcloud [sensor_msgs/PointCloud] raw data from one
-     revolution of the Velodyne transformed to /odom frame of reference
-
-Publishes:
-
-- @b veloydne/obstacles [sensor_msgs::PointCloud] points that lie on an obstacle
-- @b veloydne/clear [sensor_msgs::PointCloud] points are clear of obstackes
-
-
-@author David Claridge, Michael Quinlan, Jack O'Quin
 */
 
 #include <pluginlib/class_list_macros.h>
@@ -49,7 +36,7 @@ namespace velodyne_height_map {
     boost::shared_ptr<HeightMap> heightmap_;
   };
 
-} // namespace velodyne_height_map
+}; // namespace velodyne_height_map
 
 // Register this plugin with pluginlib.  Names must match height_map_nodelet.xml.
 //

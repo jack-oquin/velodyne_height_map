@@ -1,8 +1,34 @@
 /*  Copyright (C) 2010 UT-Austin &  Austin Robot Technology,
  *  David Claridge, Michael Quinlan
+ *  Copyright (C) 2012 Jack O'Quin
  * 
  *  License: Modified BSD Software License 
  */
+
+/** @file
+
+    @brief ROS class for detecting obstacles in a point cloud.
+
+   This class produces a point cloud containing all points that lie on
+   an obstacle and are taller than the @c height_threshold parameter.
+
+Subscribes:
+
+- @b velodyne_points [sensor_msgs::PointCloud2] data from one
+  revolution of the Velodyne LIDAR
+
+Publishes:
+
+- @b veloydne_obstacles [sensor_msgs::PointCloud2] grid cells that
+  contain an obstacle
+
+- @b veloydne_clear [sensor_msgs::PointCloud2] grid cells with no
+  obstacles
+
+
+@author David Claridge, Michael Quinlan 
+
+*/
 
 #include <velodyne_height_map/heightmap.h>
 

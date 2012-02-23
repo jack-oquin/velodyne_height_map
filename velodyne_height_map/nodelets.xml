@@ -3,7 +3,7 @@
          type="velodyne_height_map::HeightMapNodelet"
          base_class_type="nodelet::Nodelet">
     <description> 
-      Publish Velodyne height map obstacles as PointCloud2.
+      Publish height map obstacles as PointCloud2.
     </description>
   </class>
 </library>
