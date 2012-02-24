@@ -12,11 +12,9 @@
   <depend package="angles"/>
   <depend package="nodelet"/>
   <depend package="roscpp"/>
-  <depend package="sensor_msgs"/>               <!-- deprecated -->
   <depend package="pcl"/>
   <depend package="pcl_ros"/>
   <depend package="rostest"/>
-  <depend package="velodyne_common"/>           <!-- deprecated -->
   <depend package="velodyne_driver"/>           <!-- for testing -->
   <depend package="velodyne_msgs"/>
   <depend package="velodyne_pointcloud"/>       <!-- for testing -->

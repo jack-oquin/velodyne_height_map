@@ -21,12 +21,6 @@ rosbuild_add_executable(heightmap_node
 rosbuild_add_library(heightmap_nodelet
   src/heightmap_nodelet.cpp src/heightmap.cpp)
 
-# deprecated versions
-rosbuild_add_executable(height_map
-  src/height_map_node.cpp src/height_map.cpp)
-rosbuild_add_library(height_map_nodelet
-  src/nodelet.cpp src/height_map.cpp)
-
 # unit tests
 add_subdirectory(tests)
 rosbuild_add_rostest(tests/heightmap_node_hz.test)
