@@ -35,7 +35,9 @@ namespace velodyne_image_generation {
 
     Mat availableImage = Mat::zeros(size, size, CV_8U);
     Mat avgImage = Mat::zeros(size, size, CV_32F);
+    Mat avgHeightImage = Mat::zeros(size, size, CV_32F);
     Mat tempHeight = Mat::zeros(size, size, CV_32F);
+    Mat tempHeightDiff = Mat::zeros(size, size, CV_32F);
     Mat tempIntensity = Mat::zeros(size, size, CV_32F);
 
     int numHeadings = velodyne::SCANS_PER_REV / velodyne::N_LASERS;
@@ -156,11 +158,69 @@ namespace velodyne_image_generation {
       }
     }
 
+    // Compute the differences before the compression loses the image quality
+    for (int heading = 0; heading < numHeadings; heading++) {
+      float headingAngle = ((heading - numHeadings / 2) * 2 * M_PI) / numHeadings;
+      float maxDistance = 100;
+      float prevZ = 0;
+      bool prevZAvailable = false;
+
+      x = maxDistance * cosf(headingAngle);
+      y = maxDistance * sinf(headingAngle);
+
+      yPxl = -x / distancePerPixel + size / 2;
+      xPxl = -y / distancePerPixel + size / 2;
+
+      int xOrig = size / 2;
+      int yOrig = size / 2;
+    
+      // Bresenhams again, this time to find the outermost available pixel on this heading
+      int dx = abs(xPxl - xOrig);
+      int dy = abs(yPxl - yOrig);
+      int sx = -1 + 2 * (xOrig < xPxl);
+      int sy = -1 + 2 * (yOrig < yPxl);
+      int err = dx-dy;
+
+      while ((xOrig != xPxl || yOrig != yPxl) && (xOrig < size && xOrig >= 0 && yOrig < size && yOrig >=0) && availableImage.at<unsigned char>(yOrig, xOrig) == true) {
+
+        if (prevZAvailable) {
+          if (avgImage.at<float>(yOrig,xOrig) != 0) { // current z available
+            float zDiff = tempHeight.at<float>(yOrig,xOrig) / avgImage.at<float>(yOrig,xOrig) - prevZ;
+            tempHeightDiff.at<float>(yOrig,xOrig) += zDiff;
+            avgHeightImage.at<float>(yOrig,xOrig) += 1;
+          }
+        }
+
+        if (avgImage.at<float>(yOrig,xOrig) != 0) {
+          prevZ = tempHeight.at<float>(yOrig,xOrig) / avgImage.at<float>(yOrig,xOrig);
+          prevZAvailable = true;
+        } else {
+          prevZAvailable = false;
+        }
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+          err = err - dy;
+          xOrig += sx;
+        }
+        if (e2 < dx) {
+          err = err + dx;
+          yOrig += sy;
+        }
+      }
+
+      tempHeightDiff.at<float>(size/2,size/2) = 0;
+      avgHeightImage.at<float>(size/2,size/2) = 1;
+    }
+
+
     for (int i = 0; i < size; i++) {
 
-      float* tempHeightRow = tempHeight.ptr<float>(i);
+      //float* tempHeightRow = tempHeight.ptr<float>(i);
+      float* tempHeightDiffRow = tempHeightDiff.ptr<float>(i);
       float* tempIntensityRow = tempIntensity.ptr<float>(i);
       float* avgImageRow = avgImage.ptr<float>(i);
+      float* avgHeightImageRow = avgHeightImage.ptr<float>(i);
 
       unsigned char* heightRow = heightImage.ptr<unsigned char>(i);
       unsigned char* intensityRow = intensityImage.ptr<unsigned char>(i);
@@ -169,17 +229,26 @@ namespace velodyne_image_generation {
 
         if (avgImageRow[j] == 0) {
           if (!config_.useOldImage) {
-            heightRow[j] = 0;
             intensityRow[j] = 0;
+          }
+          continue;
+        }
+        if (avgHeightImageRow[j] == 0) {
+          if (!config_.useOldImage) {
+            heightRow[j] = 0;
           }
           continue;
         }
 
         // Height
+        /*
         float z = tempHeightRow[j] / avgImageRow[j];
         int scaledZ = 127 * (1.0 - pow (M_E, -(z - config_.mean) * (z - config_.mean) / (2 * config_.sigma)));
         if (z < config_.mean) scaledZ *= -1;
         scaledZ += 128;
+        */
+        float z = tempHeightDiffRow[j] / avgHeightImageRow[j];
+        int scaledZ = 255 * (1.0 - pow (M_E, -z*z / (2 * config_.sigma)));
         heightRow[j] = scaledZ;
 
         // Intensity
