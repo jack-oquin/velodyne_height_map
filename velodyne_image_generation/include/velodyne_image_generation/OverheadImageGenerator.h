@@ -53,6 +53,19 @@ namespace velodyne_image_generation {
           float distancePerPixel
       );
 
+      void generateSnapshots(
+          const std::string prefix,
+          const sensor_msgs::PointCloud2 &cloud2,
+          cv::Mat &oldHeightImage,
+          float distancePerPixel
+      );
+
+      void generateNaiveImage(
+          const sensor_msgs::PointCloud2 &cloud2,
+          cv::Mat &naiveImage,
+          float distancePerPixel
+      );
+
       /**
        * \brief   Accept reconfiguration request from dynamic reconfigure
        */

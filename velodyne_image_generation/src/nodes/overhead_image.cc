@@ -26,6 +26,7 @@
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
 #include <nav_msgs/Odometry.h>
+#include <std_msgs/String.h>
 
 #include "velodyne_image_generation/OverheadImageConfig.h"
 #include "velodyne_image_generation/OverheadImageGenerator.h"
@@ -61,6 +62,9 @@ namespace {
   cv::Mat transformation_(3, 3, CV_64F);   ///< transformation matrix used to keep changes in odometry
 
   int pixelSize_;                          ///< current size of image in pixels
+
+  bool generateSnapshots = false;
+  std::string snapshotPrefix;
 
 }
 
@@ -121,6 +125,12 @@ void processPointCloud(const sensor_msgs::PointCloud2 &cloud2) {
   shiftImageByOdometry(intensityImage.image, transformation_);
   transformation_ = cv::Mat::eye(3,3,CV_64F);
   mOdom.unlock();
+
+  // Check if snapshots need to be saved
+  if (generateSnapshots) {
+    image_.generateSnapshots(snapshotPrefix, cloud2, heightImage.image, pixelResolution);
+    generateSnapshots = false;
+  }
   
   // Generate new images (using the old ones)
   image_.getOverheadImage(cloud2, heightImage.image, intensityImage.image, pixelResolution);
@@ -178,6 +188,11 @@ void processOdom(const nav_msgs::Odometry::ConstPtr &odomIn) {
   
   prevOdomTime_ = currTime;
 
+}
+
+void processSnapshotRequest(const std_msgs::String::ConstPtr &snapshotRequest) {
+  generateSnapshots = true;
+  snapshotPrefix = snapshotRequest->data; 
 }
 
 /** 
@@ -264,6 +279,11 @@ int main(int argc, char *argv[]) {
   ros::Subscriber velodyneScan =
     node.subscribe("velodyne/pointcloud2", qDepth,
                    &processPointCloud, noDelay);
+
+  // Subscribe to snapshot generation request
+  ros::Subscriber snapshotSub = 
+    node.subscribe("generate_snapshots", qDepth,
+                   &processSnapshotRequest, noDelay);
 
   ros::Subscriber odomState = node.subscribe("odom", qDepth, processOdom, noDelay);
 
