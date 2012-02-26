@@ -93,7 +93,8 @@ namespace velodyne_image_generation {
           while ((prevXPxl[headingIdx] != xPxl || prevYPxl[headingIdx] != yPxl) && prevXPxl[headingIdx] >= 0 && prevXPxl[headingIdx] < size && prevYPxl[headingIdx] >= 0 && prevYPxl[headingIdx] < size) {
 
             // Calculate magnitudes to add
-            if (!config_.useOldImage || !isNoise) {
+            //if (!config_.useOldImage || !isNoise) {
+            if (!isNoise) {
               avgImage.at<float>(prevYPxl[headingIdx], prevXPxl[headingIdx]) += 1;
               tempHeight.at<float>(prevYPxl[headingIdx], prevXPxl[headingIdx]) += z;
               tempIntensity.at<float>(prevYPxl[headingIdx], prevXPxl[headingIdx]) += intensity;
@@ -223,10 +224,10 @@ namespace velodyne_image_generation {
     config_.preventBleeding = config_bleeding;
 
     // Save images to file
-    imwrite(prefix + "naive.jpg", naiveImage);
-    imwrite(prefix + "overhead.jpg", overheadImage);
-    imwrite(prefix + "noise_free.jpg", noiseFreeImage);
-    imwrite(prefix + "odom.jpg", odomImage);
+    imwrite(prefix + "_1.jpg", naiveImage);
+    imwrite(prefix + "_2.jpg", overheadImage);
+    imwrite(prefix + "_3.jpg", noiseFreeImage);
+    imwrite(prefix + "_4.jpg", odomImage);
 
   }
 
