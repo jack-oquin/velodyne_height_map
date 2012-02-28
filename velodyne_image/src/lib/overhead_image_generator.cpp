@@ -1,24 +1,16 @@
 /**
- * \file  OverheadImageGenerator.cc
+ * \file  overhead_image_generator.cpp
  * \brief Definitions for the OverheadImageGenerator class 
  *
- * \author  Piyush Khandelwal (piyushk), piyushk@cs.utexas.edu
- * Copyright (C) 2011, The University of Texas at Austin, Austin Robot Technology
+ * \author  Piyush Khandelwal (piyushk@cs.utexas.edu)
+ * Copyright (C) 2011, UT Austin, Austin Robot Technology
  *
  * License: Modified BSD License
  *
  * $ Id: 08/16/2011 02:38:38 PM piyushk $
  */
 
-#include <velodyne/data.h>
-#include <velodyne/ring_sequence.h>
-
-#include <velodyne_image_generation/OverheadImageGenerator.h>
-#include <velodyne_image_generation/ImageRef.h>
-
-#include <opencv/highgui.h>
-
-using namespace cv;
+#include <velodyne_image/overhead_image_generator.h>
 
 namespace velodyne_image_generation {
 
@@ -28,9 +20,8 @@ namespace velodyne_image_generation {
    */
   void OverheadImageGenerator::getOverheadImage(
           const sensor_msgs::PointCloud2 &cloud2,
-          Mat &heightImage,
-          Mat &intensityImage,
-          float distancePerPixel
+          cv::Mat& heightImage,
+          cv::Mat& intensityImage,
       ) {
 
     int size = heightImage.rows;
