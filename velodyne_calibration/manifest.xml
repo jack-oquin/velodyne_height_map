@@ -1,0 +1,17 @@
+<package>
+  <description brief="velodyne_calibration">
+
+     velodyne_calibration
+
+  </description>
+  <author>Piyush Khandelwal</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/velodyne_calibration</url>
+
+  <depend package="velodyne_pointcloud2" />
+  <depend package="angles" />
+
+</package>
+
+
