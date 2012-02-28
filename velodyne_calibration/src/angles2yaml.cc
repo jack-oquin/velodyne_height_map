@@ -75,6 +75,8 @@ int readAnglesFile(const std::string angles_file, velodyne_pointcloud::Calibrati
 
       laser_correction.focal_distance = 0; // unsupported
       laser_correction.focal_slope = 0; // unsupported
+      
+      calibration.laser_corrections.insert(correction);
     }
   }
 
