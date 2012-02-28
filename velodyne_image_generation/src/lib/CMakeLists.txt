@@ -1,2 +1,0 @@
-rosbuild_add_library(circular_image CircularImageGenerator.cc)
-rosbuild_add_library(overhead_image OverheadImageGenerator.cc)

@@ -1,12 +1,12 @@
 /**
- * \file  OverheadImageGenerator.h
+ * \file  overhead_image_generator.h
  * \brief Header for converting a PointCloud2 message into overhead images 
  *
  * This class converts velodyne data into overhead images using bresehams to 
  * fill in the discontinuities. This is useful as the 3d data is in an easy to
  * understand perspective
  *
- * \author  Piyush Khandelwal (piyushk), piyushk@cs.utexas.edu
+ * \author  Piyush Khandelwal (piyushk@cs.utexas.edu)
  * Copyright (C) 2011, The University of Texas at Austin, Austin Robot Technology
  *
  * License: Modified BSD License
@@ -14,11 +14,11 @@
  * $ Id: 08/16/2011 02:29:46 PM piyushk $
  */
 
-#ifndef OVERHEADIMAGEGENERATOR_QAUQWXVA
-#define OVERHEADIMAGEGENERATOR_QAUQWXVA
+#ifndef OVERHEAD_IMAGE_GENERATOR_QAUQWXVA
+#define OVERHEAD_IMAGE_GENERATOR_QAUQWXVA
 
 #include <opencv/cv.h>
-#include <sensor_msgs/PointCloud2.h>
+#include <pcl/pointcloud.h>
 
 #include <velodyne_image_generation/OverheadImageConfig.h>
 
