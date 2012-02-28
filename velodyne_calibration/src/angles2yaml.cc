@@ -64,7 +64,8 @@ int readAnglesFile(const std::string angles_file, velodyne_pointcloud::Calibrati
       velodyne_pointcloud::LaserCorrection& laser_correction = correction.second;
       laser_correction.rot_correction = angles::from_degrees(rotational);
       laser_correction.vert_correction = angles::from_degrees(vertical);
-      laser_correction.dist_correction = offset3 * VLS_DIM_SCALE;  // convert to meters from centimeters
+      laser_correction.dist_correction = offset3;  // convert to meters from centimeters
+      laser_correction.two_pt_correction_available = false; // unsupported
       laser_correction.dist_correction_x = 0; // unsupported
       laser_correction.dist_correction_y = 0; // unsupported
       laser_correction.vert_offset_correction = vertCorr * VLS_DIM_SCALE; // convert to meters
