@@ -19,10 +19,10 @@
 #include <opencv/cv.h>
 #include <pcl/point_cloud.h>
 
-#include <velodyne_pointcloud/point_types.h>
 #include <velodyne_pointcloud/rawdata.h>
+#include <velodyne_pointcloud/point_types.h>
 #include <velodyne_pointcloud/ring_sequence.h>
-#include <velodyne_image/OverheadiImageConfig.h>
+#include <velodyne_image/OverheadImageConfig.h>
 
 namespace velodyne_image {
 
@@ -59,12 +59,13 @@ namespace velodyne_image {
        * \brief For visualization only - do not use in production code
        */
       void generateSnapshots(const std::string& prefix, 
-          const VPointCloud& cloud, const cv::Mat& previous_height_image);
+          const VPointCloud& cloud, const cv::Mat& prev_height_image);
 
       /** 
        * \brief For visualization only - do not use in production code
        */
-      void getNaiveHeightImage(const VPointCloud& cloud, cv::Mat &naive_image);
+      void getNaiveImages(const VPointCloud& cloud, cv::Mat& height_image,
+          cv::Mat& intensity_image);
 
       /**
        * \brief Accept reconfiguration request from dynamic reconfigure

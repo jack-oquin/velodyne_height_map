@@ -15,6 +15,7 @@
 
 #include <velodyne_pointcloud/ring_sequence.h>
 #include <velodyne_image/circular_image_generator.h>
+#include <velodyne_image/common.h>
 
 namespace velodyne_image {
 
@@ -32,11 +33,13 @@ namespace velodyne_image {
     // Recreate images if necessary - 
     // good for first creation and when dynamic reconfigure changes size
     if (height_image.size() != avg_image.size() || 
-        height_image.type() != CV_32F) {
+        height_image.type() != CV_32F ||
+        height_image.data == NULL) {
       height_image.create(avg_image.size(), CV_32F);
     }
     if (intensity_image.size() != avg_image.size() || 
-        intensity_image.type() != CV_8U) {
+        intensity_image.type() != CV_8U ||
+        intensity_image.data == NULL) {
       intensity_image.create(avg_image.size(), CV_8U);
     }
 
@@ -55,36 +58,10 @@ namespace velodyne_image {
       avg_image.at<unsigned char>(ring_number, heading_idx) += point.z;
     } 
 
-    for (int y = 0; y < velodyne_rawdata::N_LASERS; ++y) {
-
-      // Get temp image poiinters
-      unsigned char* avg_image_row = avg_image.ptr<unsigned char>(y);
-      int* temp_intensity_row = temp_intensity.ptr<int>(y);
-      float* temp_height_row = temp_height.ptr<float>(y);
-
-      // Get actual image pointers
-      unsigned char* intensity_row = intensity_image.ptr<unsigned char>(y);
-      float* height_row = height_image.ptr<float>(y);
-
-      for (int x = 0; x < config_.points_per_laser; ++x) {
-
-        // Height values
-        float z = temp_height_row[x] / avg_image_row[x];
-        float scaled_z = 
-          1.0 - powf(M_E, - (z - config_.mean)*(z - config_.mean) /
-                            (2 * config_.sigma));
-        if (z < config_.mean)
-          scaled_z *= -1;
-        scaled_z = 0.5 * (1 + scaled_z);
-        height_row[x] = scaled_z;
-
-        // Intensity values
-        unsigned char intensity = (unsigned char) (temp_intensity_row[x] /
-                                                   avg_image_row[x]);
-        intensity_row[x] = intensity;
-
-      } /* end x */
-    } /* end y */
+    // Assign values to the actual images
+    fillImageValues(avg_image, config_.use_old_image, 
+        temp_height, temp_intensity, height_image, intensity_image,
+        config_.mean, config_.sigma);
 
   }
 }
