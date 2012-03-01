@@ -3,8 +3,8 @@
  * \brief node for converting a PointCloud message from the velodyne to 
  *        circular images
  *
- * \author  Piyush Khandelwal (piyushk), piyushk@cs.utexas.edu
- * Copyright (C) 2011, The University of Texas at Austin, Austin Robot Technology
+ * \author  Piyush Khandelwal (piyushk@cs.utexas.edu)
+ * Copyright (C) 2011, UT Austin, Austin Robot Technology
  *
  * License: Modified BSD License
  *
@@ -18,132 +18,48 @@
 
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
-#include <cv_bridge/CvBridge.h>
 #include <image_transport/image_transport.h>
 #include <sensor_msgs/Image.h>
+#include <pcl_ros/point_cloud.h>
 
-#include <velodyne_image_generation/CircularImageConfig.h>
-#include <velodyne_image_generation/CircularImageGenerator.h>
-#include <velodyne_image_generation/ImageRef.h>
+#include <velodyne_image/circular_image_generator.h>
+#include <velodyne_image/CircularImageConfig.h>
 
-#define NODE "velodyne_image_circular"
+#define NODE "velodyne_circular_image"
 
 namespace {
 
-  int qDepth = 1;
-  bool display = false;
+  typedef velodyne_pointcloud::PointXYZIR VPoint;
+  typedef pcl::PointCloud<VPoint> VPointCloud;
 
-  // The 3 outgoing images
-  IplImage *heightImage = NULL;
-  IplImage *intensityImage = NULL;
-  IplImage *distanceImage = NULL;
+  int q_depth_ = 1;
+  bool display_ = true;
 
-  IplImage *indexImage = NULL;     ///< Temporary image to hold indices in pc
+  //sensor_msgs::CvBridge bridge_;
+  velodyne_image::CircularImageGenerator generator_;
 
-  velodyne_image_generation::CircularImageGenerator image_;
-
-  sensor_msgs::CvBridge bridge_;
-
-  image_transport::Publisher outputHeight_;
-  image_transport::Publisher outputIntensity_;
-  image_transport::Publisher outputDistance_;
+  cv::Mat height_image_;
+  cv::Mat intensity_image_;
+  image_transport::Publisher height_publisher_;
+  image_transport::Publisher intensity_publisher_;
 
 }
 
 /**
- * \brief   Processes the PointCloud message pc to generate the images
+ * \brief Processes the PointCloud message to generate images
  */
-void processPointCloud(const sensor_msgs::PointCloud &pc) {
+void processPointCloud(const velodyne_image::VPointCloud& cloud) {
 
-  image_.calculateIndices(pc, indexImage);
-  image_.getIntensityImage(pc, indexImage, intensityImage);
-  image_.getGaussianHeightImage(pc, indexImage, heightImage);
-  image_.getDistanceImage(pc, indexImage, distanceImage);
+  generator_.getCircularImages(cloud, height_image_, intensity_image_);
 
-  if (display) {
-    cvShowImage("HeightImage", heightImage);
-    cvShowImage("IntensityImage", intensityImage);
-    cvShowImage("DistanceImage", distanceImage);
+  if (display_) {
+    cv::imshow("Height Image", height_image_);
+    cv::imshow("Intensity Image", intensity_image_);
   }
 
   ROS_DEBUG(NODE ": Publishing Images");
-  outputHeight_.publish(bridge_.cvToImgMsg(heightImage));
-  outputIntensity_.publish(bridge_.cvToImgMsg(intensityImage));
-  outputDistance_.publish(bridge_.cvToImgMsg(distanceImage));
-}
-
-/** 
- * /brief handle dynamic reconfigure service request
- *
- * /param newConfig new configuration from dynamic reconfigure client,
- *        becomes the service reply message as updated here.
- * /param level SensorLevels value (0xffffffff on initial call)
- *
- * /todo don't recreate images if size does not change
- * /todo fix seg fault on changes to size
- *
- */
-void reconfigure(velodyne_image_generation::CircularImageConfig &newConfig, uint32_t level) {
-  ROS_INFO(NODE ": Dynamic reconfigure, level 0x%x", level);
-  image_.reconfigure(newConfig);
-
-  // Recreate Images
-  if (heightImage) {
-    cvReleaseImage(&heightImage);
-    heightImage = NULL;
-  } 
-  heightImage = cvCreateImage(
-      cvSize(newConfig.pointsPerLaser, newConfig.numLasers),
-      IPL_DEPTH_8U, 1);
-
-  if (intensityImage) {
-    cvReleaseImage(&intensityImage);
-    intensityImage = NULL;
-  } 
-  intensityImage = cvCreateImage(
-      cvSize(newConfig.pointsPerLaser, newConfig.numLasers),
-      IPL_DEPTH_8U, 1);
-
-  if (distanceImage) {
-    cvReleaseImage(&distanceImage);
-    distanceImage = NULL;
-  } 
-  distanceImage = cvCreateImage(
-      cvSize(newConfig.pointsPerLaser, newConfig.numLasers),
-      IPL_DEPTH_8U, 1);
-
-  if (indexImage) {
-    cvReleaseImage(&indexImage);
-    indexImage = NULL;
-  } 
-  indexImage = cvCreateImage(
-      cvSize(newConfig.pointsPerLaser, newConfig.numLasers),
-      IPL_DEPTH_32S, 1);
-}
-
-/**
- * \brief   Use getopt to parse command line flags
- */
-int getParameters(int argc, char *argv[]) {
-  char ch;
-  const char* optflags = "q:d";
-  while(-1 != (ch = getopt(argc, argv, optflags))) {
-    switch(ch) {
-
-      case 'q':
-        qDepth = atoi(optarg);
-        if (qDepth < 1) {
-          qDepth = 1;
-        }
-        break;
-
-      case 'd':
-        display = true;
-        break;
-    }
-  }
-
-  return 1;
+  //outputHeight_.publish(bridge_.cvToImgMsg(heightImage));
+  //outputIntensity_.publish(bridge_.cvToImgMsg(intensityImage));
 }
 
 int main(int argc, char *argv[]) {
@@ -151,54 +67,39 @@ int main(int argc, char *argv[]) {
   ros::init(argc, argv, NODE);
   ros::NodeHandle node;
 
-  if (!getParameters(argc, argv))
-    return 22; 
-    
-  // Initialize Display if required
-  if (display) {
-    cvNamedWindow("HeightImage", 0);
-    cvResizeWindow("HeightImage", 1024, 128);
-    cvMoveWindow("HeightImage", 0, 25);
-    cvNamedWindow("IntensityImage", 0);
-    cvResizeWindow("IntensityImage", 1024, 128);
-    cvMoveWindow("IntensityImage", 0, 185);
-    cvNamedWindow("DistanceImage", 0);
-    cvResizeWindow("DistanceImage", 1024, 128);
-    cvMoveWindow("DistanceImage", 0, 345);
+  // Initialize display if required
+  if (display_) {
+    cvNamedWindow("Height Image", 0);
+    cvResizeWindow("Height Image", 512, 64);
+    cvNamedWindow("Intensity Image", 0);
+    cvResizeWindow("Intensity Image", 512, 64);
     cvStartWindowThread();    
   }
 
-  // Declare dynamic reconfigure callback
-  dynamic_reconfigure::Server<velodyne_image_generation::CircularImageConfig> srv;
-  dynamic_reconfigure::Server<velodyne_image_generation::CircularImageConfig>::CallbackType cb =
-    boost::bind(&reconfigure, _1, _2);
-  srv.setCallback(cb);
+  // Setup a dynamic reconfigure server and setup the callback
+  // dynamic_reconfigure::Server<velodyne_image::CircularImageConfig> srv;
+  // dynamic_reconfigure::Server<velodyne_image::CircularImageConfig>::
+  //   CallbackType cb = boost::bind(&reconfigure, _1, _2);
+  // srv.setCallback(cb);
 
-  // Subscribe to point cloud, and get ready to publish images
-  ros::TransportHints noDelay = ros::TransportHints().tcpNoDelay(true);
-  ros::Subscriber velodyne_scan =
-    node.subscribe("velodyne/pointcloud", qDepth,
-                   &processPointCloud, noDelay);
+  // Subscribe to point cloud
+  node.subscribe<VPointCloud>("velodyne_points", q_depth_,
+      processPointCloud);
 
+  // Advertise images
   image_transport::ImageTransport it = image_transport::ImageTransport(node);
-  outputHeight_ = it.advertise("velodyne/heightImage", qDepth);
-  outputIntensity_ = it.advertise("velodyne/intensityImage", qDepth);
-  outputDistance_ = it.advertise("velodyne/distanceImage", qDepth);
+  height_publisher_ = 
+    it.advertise("velodyne_height/circular/image_raw", q_depth_);
+  intensity_publisher_ = 
+    it.advertise("velodyne_intensity/circular/image_raw", q_depth_);
 
   ROS_INFO(NODE ": starting up");
-
   ros::spin();                          // handle incoming data
-
   ROS_INFO(NODE ": shutting down");
 
-  // Cleanup
-  cvReleaseImage(&heightImage);
-  cvReleaseImage(&intensityImage);
-  cvReleaseImage(&indexImage);
-
-  if (display) {
-    cvDestroyWindow("HeightImage");
-    cvDestroyWindow("IntensityImage");
+  if (display_) {
+    cvDestroyWindow("Height Image");
+    cvDestroyWindow("Intensity Image");
   }
 
   return 0;
