@@ -46,13 +46,13 @@ namespace velodyne_image {
       // Calculate image indices
       float heading(atan2(point.y, point.x));
       heading = heading + M_PI;
-      int headingIdx = heading / (2 * M_PI) * config_.points_per_laser;
+      int heading_idx = heading / (2 * M_PI) * config_.points_per_laser;
       int ring_number = velodyne_rawdata::N_LASERS - point.ring - 1;
 
-      avg_image.at<unsigned char>(ring_number, headingIdx) += 1;
-      temp_intensity.at<unsigned char>(ring_number, headingIdx) += 
+      avg_image.at<unsigned char>(ring_number, heading_idx) += 1;
+      temp_intensity.at<unsigned char>(ring_number, heading_idx) += 
         point.intensity;
-      avg_image.at<unsigned char>(ring_number, headingIdx) += point.z;
+      avg_image.at<unsigned char>(ring_number, heading_idx) += point.z;
     } 
 
     for (int y = 0; y < velodyne_rawdata::N_LASERS; ++y) {

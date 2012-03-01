@@ -18,14 +18,20 @@
 
 #include <opencv/cv.h>
 #include <pcl/point_cloud.h>
+
 #include <velodyne_pointcloud/point_types.h>
-#include <velodyne_image/overhead_image_config.h>
+#include <velodyne_pointcloud/rawdata.h>
+#include <velodyne_pointcloud/ring_sequence.h>
+#include <velodyne_image/OverheadiImageConfig.h>
 
 namespace velodyne_image {
 
   // Shorthand typedefs for point cloud representations
   typedef velodyne_pointcloud::PointXYZIR VPoint;
   typedef pcl::PointCloud<VPoint> VPointCloud;
+
+  const unsigned int NUM_HEADINGS = 
+    velodyne_rawdata::SCANS_PER_REV / velodyne_rawdata::N_LASERS;
 
   class OverheadImageGenerator {
 
