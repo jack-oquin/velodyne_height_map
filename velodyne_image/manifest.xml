@@ -12,12 +12,12 @@
   <depend package="roscpp"/>
   <depend package="sensor_msgs"/>
   <depend package="nav_msgs"/>
-  <depend package="opencv2"/>
   <depend package="cv_bridge"/>
   <depend package="image_transport"/>
   <depend package="dynamic_reconfigure"/>
   <depend package="velodyne_pointcloud"/>
-  <depend package="pcl_common"/>
+
+  <rosdep name="opencv2.3" />
 
   <export>
     <cpp cflags="-I${prefix}/include"

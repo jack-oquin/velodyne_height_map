@@ -19,7 +19,7 @@
 #include <opencv/cv.h>
 #include <pcl/point_cloud.h>
 #include <velodyne_pointcloud/point_types.h>
-#include <velodyne_image_generation/circular_image_config.h>
+#include <velodyne_image/CircularImageConfig.h>
 
 namespace velodyne_image {
 

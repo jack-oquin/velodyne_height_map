@@ -1,2 +1,2 @@
 rosbuild_add_library(circular_image circular_image_generator.cpp)
-rosbuild_add_library(overhead_image overhead_image_generator.cpp)
+#rosbuild_add_library(overhead_image overhead_image_generator.cpp)
