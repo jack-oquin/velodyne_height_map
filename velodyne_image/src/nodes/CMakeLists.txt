@@ -1,5 +1,5 @@
-#rosbuild_add_executable(circular_image circular_image.cc)
-#target_link_libraries(circular_image velodyne_image)
+rosbuild_add_executable(circular_image circular_image.cc)
+target_link_libraries(circular_image velodyne_image)
 
 #rosbuild_add_executable(overhead_image overhead_image.cc)
 #target_link_libraries(overhead_image velodyne_image)

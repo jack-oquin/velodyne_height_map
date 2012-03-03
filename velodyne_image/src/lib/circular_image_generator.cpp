@@ -53,10 +53,10 @@ namespace velodyne_image {
       int ring_number = velodyne_rawdata::N_LASERS - point.ring - 1;
 
       avg_image.at<unsigned char>(ring_number, heading_idx) += 1;
-      temp_intensity.at<unsigned char>(ring_number, heading_idx) += 
+      temp_intensity.at<int>(ring_number, heading_idx) += 
         point.intensity;
-      avg_image.at<unsigned char>(ring_number, heading_idx) += point.z;
-    } 
+      temp_height.at<float>(ring_number, heading_idx) += point.z;
+    }
 
     // Assign values to the actual images
     fillImageValues(avg_image, config_.use_old_image, 

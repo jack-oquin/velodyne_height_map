@@ -1,6 +1,6 @@
 /**
  * \file  circular_image.cc
- * \brief node for converting a PointCloud message from the velodyne to 
+ * \brief Node for converting a PointCloud message from the velodyne to 
  *        circular images
  *
  * \author  Piyush Khandelwal (piyushk@cs.utexas.edu)
@@ -19,7 +19,9 @@
 #include <opencv/cv.h>
 #include <opencv/highgui.h>
 #include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
 #include <sensor_msgs/Image.h>
+#include <sensor_msgs/image_encodings.h>
 #include <pcl_ros/point_cloud.h>
 
 #include <velodyne_image/circular_image_generator.h>
@@ -33,9 +35,8 @@ namespace {
   typedef pcl::PointCloud<VPoint> VPointCloud;
 
   int q_depth_ = 1;
-  bool display_ = true;
+  bool display_ = false;
 
-  //sensor_msgs::CvBridge bridge_;
   velodyne_image::CircularImageGenerator generator_;
 
   cv::Mat height_image_;
@@ -48,18 +49,41 @@ namespace {
 /**
  * \brief Processes the PointCloud message to generate images
  */
-void processPointCloud(const velodyne_image::VPointCloud& cloud) {
+void processPointCloud(const VPointCloud::ConstPtr& cloud) {
 
-  generator_.getCircularImages(cloud, height_image_, intensity_image_);
+  generator_.getCircularImages(*cloud, height_image_, intensity_image_);
 
   if (display_) {
     cv::imshow("Height Image", height_image_);
     cv::imshow("Intensity Image", intensity_image_);
   }
 
-  ROS_DEBUG(NODE ": Publishing Images");
-  //outputHeight_.publish(bridge_.cvToImgMsg(heightImage));
-  //outputIntensity_.publish(bridge_.cvToImgMsg(intensityImage));
+  ROS_DEBUG_STREAM(NODE ": Publishing Images");
+
+  // Publish height image
+  cv_bridge::CvImage height_msg;
+  height_msg.header = cloud->header;
+  height_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
+  height_msg.image = height_image_; // Does not copy image data
+  height_publisher_.publish(height_msg.toImageMsg());
+
+  // Publish intensity image
+  cv_bridge::CvImage intensity_msg;
+  intensity_msg.header = cloud->header;
+  intensity_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC1;
+  intensity_msg.image = intensity_image_; // Does not copy image data
+  intensity_publisher_.publish(intensity_msg.toImageMsg());
+
+}
+
+/**
+ * \brief Receives reconfiguration requests from the dynamic reconfigure
+ *        server and updates the generator
+ */
+void reconfigure(const velodyne_image::CircularImageConfig& new_config, 
+    uint32_t level) {
+  ROS_INFO_STREAM("Received reconfigure request: " << level);
+  generator_.reconfigure(new_config);
 }
 
 int main(int argc, char *argv[]) {
@@ -67,24 +91,26 @@ int main(int argc, char *argv[]) {
   ros::init(argc, argv, NODE);
   ros::NodeHandle node;
 
+  ros::param::get("~display", display_);
+
   // Initialize display if required
   if (display_) {
-    cvNamedWindow("Height Image", 0);
+    cv::namedWindow("Height Image", 0);
     cvResizeWindow("Height Image", 512, 64);
-    cvNamedWindow("Intensity Image", 0);
+    cv::namedWindow("Intensity Image", 0);
     cvResizeWindow("Intensity Image", 512, 64);
     cvStartWindowThread();    
   }
 
   // Setup a dynamic reconfigure server and setup the callback
-  // dynamic_reconfigure::Server<velodyne_image::CircularImageConfig> srv;
-  // dynamic_reconfigure::Server<velodyne_image::CircularImageConfig>::
-  //   CallbackType cb = boost::bind(&reconfigure, _1, _2);
-  // srv.setCallback(cb);
+  dynamic_reconfigure::Server<velodyne_image::CircularImageConfig> srv;
+  dynamic_reconfigure::Server<velodyne_image::CircularImageConfig>::
+    CallbackType cb = boost::bind(&reconfigure, _1, _2);
+  srv.setCallback(cb);
 
   // Subscribe to point cloud
-  node.subscribe<VPointCloud>("velodyne_points", q_depth_,
-      processPointCloud);
+  ros::Subscriber cloud_subscriber = 
+    node.subscribe<VPointCloud>("velodyne_points", q_depth_, processPointCloud);
 
   // Advertise images
   image_transport::ImageTransport it = image_transport::ImageTransport(node);
@@ -93,10 +119,11 @@ int main(int argc, char *argv[]) {
   intensity_publisher_ = 
     it.advertise("velodyne_intensity/circular/image_raw", q_depth_);
 
-  ROS_INFO(NODE ": starting up");
+  ROS_INFO_STREAM(NODE ": starting up");
   ros::spin();                          // handle incoming data
-  ROS_INFO(NODE ": shutting down");
+  ROS_INFO_STREAM(NODE ": shutting down");
 
+  // Shutdown displays on exit
   if (display_) {
     cvDestroyWindow("Height Image");
     cvDestroyWindow("Intensity Image");
