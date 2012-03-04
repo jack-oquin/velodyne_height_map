@@ -12,7 +12,6 @@
  */
 
 #include <ros/ros.h>
-#include <sensor_msgs/PointCloud.h>
 #include <dynamic_reconfigure/server.h>
 #include <dynamic_reconfigure/SensorLevels.h>
 
@@ -59,7 +58,6 @@ void processPointCloud(const VPointCloud::ConstPtr& cloud) {
   }
 
   ROS_DEBUG_STREAM(NODE ": Publishing Images");
-
   // Publish height image
   cv_bridge::CvImage height_msg;
   height_msg.header = cloud->header;
@@ -82,7 +80,7 @@ void processPointCloud(const VPointCloud::ConstPtr& cloud) {
  */
 void reconfigure(const velodyne_image::CircularImageConfig& new_config, 
     uint32_t level) {
-  ROS_INFO_STREAM("Received reconfigure request: " << level);
+  ROS_INFO_STREAM(NODE ": Received reconfigure request level " << level);
   generator_.reconfigure(new_config);
 }
 
@@ -92,12 +90,15 @@ int main(int argc, char *argv[]) {
   ros::NodeHandle node;
 
   ros::param::get("~display", display_);
+  ros::param::get("~q_depth", q_depth_);
 
   // Initialize display if required
   if (display_) {
-    cv::namedWindow("Height Image", 0);
+    cv::namedWindow("Height Image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO |
+                                    CV_GUI_NORMAL);
     cvResizeWindow("Height Image", 512, 64);
-    cv::namedWindow("Intensity Image", 0);
+    cv::namedWindow("Intensity Image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO |
+                                       CV_GUI_NORMAL);
     cvResizeWindow("Intensity Image", 512, 64);
     cvStartWindowThread();    
   }

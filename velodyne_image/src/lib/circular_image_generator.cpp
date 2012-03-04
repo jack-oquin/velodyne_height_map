@@ -35,12 +35,12 @@ namespace velodyne_image {
     if (height_image.size() != avg_image.size() || 
         height_image.type() != CV_32F ||
         height_image.data == NULL) {
-      height_image.create(avg_image.size(), CV_32F);
+      height_image = cv::Mat::zeros(avg_image.size(), CV_32F);
     }
     if (intensity_image.size() != avg_image.size() || 
         intensity_image.type() != CV_8U ||
         intensity_image.data == NULL) {
-      intensity_image.create(avg_image.size(), CV_8U);
+      intensity_image = cv::Mat::zeros(avg_image.size(), CV_8U);
     }
 
     // Iterate over all the points and fill in the temp images

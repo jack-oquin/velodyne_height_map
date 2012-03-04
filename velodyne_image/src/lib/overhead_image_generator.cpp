@@ -39,12 +39,12 @@ namespace velodyne_image {
     if (height_image.size() != avg_image.size() || 
         height_image.type() != CV_32F ||
         height_image.data == NULL) {
-      height_image.create(avg_image.size(), CV_32F);
+      height_image = cv::Mat::zeros(avg_image.size(), CV_32F);
     }
     if (intensity_image.size() != avg_image.size() || 
         intensity_image.type() != CV_8U ||
         intensity_image.data == NULL) {
-      intensity_image.create(avg_image.size(), CV_8U);
+      intensity_image = cv::Mat::zeros(avg_image.size(), CV_8U);
     }
     // Store points across radial lines
     int prev_x_pxl[NUM_HEADINGS]; 
@@ -149,8 +149,8 @@ namespace velodyne_image {
 
           // Find far external points on these radial lines
           float heading = 
-            ((float) (heading_idx - NUM_HEADINGS / 2)) / NUM_HEADINGS * 
-            (2 * M_PI);
+            ((float) heading_idx) / NUM_HEADINGS * 
+            (2 * M_PI) - M_PI;
           float max_distance = 100;
 
           // TODO: these values can be cached as the headings/radials are fixed
@@ -160,8 +160,8 @@ namespace velodyne_image {
           int y_pxl = -x / config_.distance_per_pixel + dim_size / 2;
           int x_pxl = -y / config_.distance_per_pixel + dim_size / 2;
 
-          int x_orig = dim_size / 2;
-          int y_orig = dim_size / 2;
+          int x_orig = prev_x_pxl[heading_idx];
+          int y_orig = prev_y_pxl[heading_idx];
         
           // Bresenham's again, except this stops when it finds points that have
           // not been reached
@@ -182,8 +182,6 @@ namespace velodyne_image {
           while (not_reached_end_point && not_reached_boundaries && 
                  image_pixel_filled) {
 
-            // TODO(piyushk): I think there is an issue with this formulation
-            // why not just start at their current positions
             // Calculate magnitudes to add
             prev_x_pxl[heading_idx] = x_orig;
             prev_y_pxl[heading_idx] = y_orig;
