@@ -30,3 +30,4 @@ set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
 #target_link_libraries(example ${PROJECT_NAME})
 
 rosbuild_add_executable(angles2yaml src/angles2yaml.cc)
+rosbuild_add_executable(calibrator src/nodes/calibrator.cc)
