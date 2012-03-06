@@ -131,13 +131,13 @@ void performCalibration(const velodyne_rawdata::VPointCloud& cloud,
 
     // Search in the vicinity of the current pitch
     float error_metric[NUM_ROUNDS];
-    for (int round = 0 ; round < NUM_ROUNDS; ++round) {
+    for (int run = 0 ; run < NUM_ROUNDS; ++run) {
 
       // Write new calibration
       velodyne_pointcloud::Calibration calib = current_calibration_;
       calib.laser_corrections[velodyne_rawdata::LASER_SEQUENCE[ring]].vert_correction =
         current_calibration_.laser_corrections[velodyne_rawdata::LASER_SEQUENCE[ring]].vert_correction +
-        (round - NUM_ROUNDS / 2) * 0.001;
+        (run - NUM_ROUNDS / 2) * 0.001;
 
       // Get the new calibration
       calib.write(output_file_);
@@ -166,27 +166,27 @@ void performCalibration(const velodyne_rawdata::VPointCloud& cloud,
         }
       }
       if (count != 0) {
-        error_metric[round] = error / count;
+        error_metric[run] = error / count;
       } else {
-        error_metric[round] = 9000.0;
+        error_metric[run] = 9000.0;
       }
-      ROS_INFO_STREAM("  round " << round << ": " << error_metric);
+      ROS_INFO_STREAM("  run " << run << ": " << error_metric[run]);
     }
 
     // Compute the pitch with the lowest error
-    int best_round = 0;
+    int best_run = 0;
     float lowest_error = error_metric[0];
     for (int i = 1; i < NUM_ROUNDS; i++) {
       if (error_metric[i] < lowest_error) {
-        best_round = i;
+        best_run = i;
         lowest_error = error_metric[i];
       }
     }
-    ROS_INFO_STREAM("  best round: " << best_round);
+    ROS_INFO_STREAM("  best run: " << best_run << "(" << lowest_error << ")");
 
     // Set the current calibration to the best pitch
     current_calibration_.laser_corrections[velodyne_rawdata::LASER_SEQUENCE[ring]].vert_correction +=
-      (best_round - NUM_ROUNDS / 2) * 0.001;
+      (best_run - NUM_ROUNDS / 2) * 0.001;
 
   }
   current_calibration_.write(output_file_);
