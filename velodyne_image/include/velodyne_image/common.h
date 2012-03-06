@@ -31,7 +31,7 @@ namespace velodyne_image {
   void fillImageValues(cv::Mat& avg_image, bool use_old_image, 
       cv::Mat& temp_height, cv::Mat& temp_intensity, 
       cv::Mat& height_image, cv::Mat& intensity_image,
-      float mean, float sigma);
+      float mean, float sigma, bool scale_values = true);
 
 } /* velodyne_image */
 

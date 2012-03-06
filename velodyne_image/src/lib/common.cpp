@@ -36,7 +36,7 @@ namespace velodyne_image {
   void fillImageValues(cv::Mat& avg_image, bool use_old_image, 
       cv::Mat& temp_height, cv::Mat& temp_intensity, 
       cv::Mat& height_image, cv::Mat& intensity_image,
-      float mean, float sigma) {
+      float mean, float sigma, bool scale_values) {
 
     // Let's fill in the actual images that are going to be returned
     for (int y = 0; y < avg_image.rows; ++y) {
@@ -62,8 +62,12 @@ namespace velodyne_image {
 
         // Height values
         float z = temp_height_row[x] / avg_image_row[x];
-        float scaled_z = enhanceContrast(z, mean, sigma); 
-        height_row[x] = scaled_z;
+        if (scale_values) {
+          float scaled_z = enhanceContrast(z, mean, sigma); 
+          height_row[x] = scaled_z;
+        } else {
+          height_row[x] = z;
+        }
 
         // Intensity values
         unsigned char intensity = (unsigned char) (temp_intensity_row[x] /
