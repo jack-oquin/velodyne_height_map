@@ -28,6 +28,12 @@ namespace velodyne_image {
     return scaled_z;
   }
 
+  float enhanceDisparityContrast(float z, float mean, float sigma) {
+    float scaled_z = 
+      1.0 - powf(M_E, - (z - mean)*(z - mean) / (2 * sigma));
+    return scaled_z;
+  }
+
   /**
    * \brief Takes the temp images and fills in the actual images using 
    *        scaling. This function does no error checking, and assumes all the
@@ -78,4 +84,26 @@ namespace velodyne_image {
     } /* end y */
   }
 
+  void enhanceContrast(const cv::Mat& src, cv::Mat& dst, 
+      float mean, float sigma, bool use_disparity_formula) {
+
+    if (dst.size() != src.size() || 
+        dst.type() != CV_32F ||
+        dst.data == NULL) {
+      dst = cv::Mat::zeros(src.size(), CV_32F);
+    }
+
+    for (int y = 0; y < src.rows; ++y) {
+      const float* src_row = src.ptr<float>(y);
+      float* dst_row = dst.ptr<float>(y);
+      for (int x = 0; x < src.cols; ++x) {
+        if (use_disparity_formula) {
+          dst_row[x] = enhanceDisparityContrast(src_row[x], mean, sigma);
+        } else {
+          dst_row[x] = enhanceContrast(src_row[x], mean, sigma);
+        }
+      }
+    }
+
+  }
 } /* velodyne_image */

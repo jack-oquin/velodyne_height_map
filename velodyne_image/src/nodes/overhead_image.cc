@@ -26,6 +26,7 @@
 #include <pcl_ros/point_cloud.h>
 
 #include <velodyne_image/overhead_image_generator.h>
+#include <velodyne_image/common.h>
 #include <velodyne_image/OverheadImageConfig.h>
 
 #define NODE "velodyne_overhead_image"
@@ -41,6 +42,7 @@ namespace {
   // The 2 outgoing images
   cv::Mat height_image_;
   cv::Mat intensity_image_;
+  cv::Mat disparity_image_;
 
   velodyne_image::OverheadImageGenerator generator_;
   image_transport::Publisher height_publisher_;
@@ -55,6 +57,11 @@ namespace {
 
   int image_size_;                         ///< current size of image in pixels
   float distance_per_pixel_;               ///< current resolution of the image
+
+  float mean_;
+  float sigma_;
+  float disparity_mean_;
+  float disparity_sigma_;
 
   bool generate_snapshots_ = false;
   std::string snapshot_prefix_;
@@ -122,11 +129,16 @@ void processPointCloud(const VPointCloud::ConstPtr& cloud) {
   }
   
   // Generate new images (using the old ones)
-  generator_.getOverheadImages(*cloud, height_image_, intensity_image_);
+  generator_.getOverheadImages(*cloud, height_image_, disparity_image_, 
+      intensity_image_);
 
   if (display_) {
-    cv::imshow("Height Image", height_image_);
+    cv::Mat display_height;
+    velodyne_image::enhanceContrast(height_image_, display_height, 
+        mean_, sigma_, false);
+    cv::imshow("Height Image", display_height);
     cv::imshow("Intensity Image", intensity_image_);
+    cv::imshow("Disparity Image", disparity_image_);
   }
 
   ROS_DEBUG_STREAM(NODE ": Publishing Images");
@@ -134,7 +146,8 @@ void processPointCloud(const VPointCloud::ConstPtr& cloud) {
   cv_bridge::CvImage height_msg;
   height_msg.header = cloud->header;
   height_msg.encoding = sensor_msgs::image_encodings::TYPE_32FC1;
-  height_msg.image = height_image_; // Does not copy image data
+  //height_msg.image = height_image_; // Does not copy image data
+  height_msg.image = disparity_image_;
   height_publisher_.publish(height_msg.toImageMsg());
 
   // Publish intensity image
@@ -193,6 +206,10 @@ void reconfigure(const velodyne_image::OverheadImageConfig& new_config,
   ROS_INFO_STREAM(NODE ": Received reconfigure request level " << level);
   image_size_ = new_config.image_size;
   distance_per_pixel_ = new_config.distance_per_pixel;
+  mean_ = new_config.mean;
+  sigma_ = new_config.sigma;
+  disparity_mean_ = new_config.disparity_mean;
+  disparity_sigma_ = new_config.disparity_sigma;
   generator_.reconfigure(new_config);
 }
 
@@ -212,6 +229,9 @@ int main(int argc, char *argv[]) {
     cv::namedWindow("Intensity Image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO |
                                        CV_GUI_NORMAL);
     cvResizeWindow("Intensity Image", 400, 400);
+    cv::namedWindow("Disparity Image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO |
+                                       CV_GUI_NORMAL);
+    cvResizeWindow("Disparity Image", 400, 400);
     cvStartWindowThread();    
   }
 
@@ -248,6 +268,7 @@ int main(int argc, char *argv[]) {
   if (display_) {
     cvDestroyWindow("Height Image");
     cvDestroyWindow("Intensity Image");
+    cvDestroyWindow("Disparity Image");
   }
 
   return 0;

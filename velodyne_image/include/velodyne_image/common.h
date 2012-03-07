@@ -22,6 +22,7 @@ namespace velodyne_image {
    *        better exhibit features around the mean height 
    */
   float enhanceContrast(float z, float mean, float sigma);
+  float enhanceDisparityContrast(float z, float mean, float sigma);
 
   /**
    * \brief Takes the temp images and fills in the actual images using 
@@ -32,6 +33,9 @@ namespace velodyne_image {
       cv::Mat& temp_height, cv::Mat& temp_intensity, 
       cv::Mat& height_image, cv::Mat& intensity_image,
       float mean, float sigma, bool scale_values = true);
+
+  void enhanceContrast(const cv::Mat& src, cv::Mat& dst, 
+      float mean, float sigma, bool use_disparity_formula = false);
 
 } /* velodyne_image */
 

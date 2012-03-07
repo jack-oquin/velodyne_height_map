@@ -53,7 +53,16 @@ namespace velodyne_image {
        *        intensity values
        */
       void getOverheadImages(const VPointCloud& cloud, cv::Mat& height_image,
-          cv::Mat& intensity_image);
+          cv::Mat& disparity_image, cv::Mat& intensity_image);
+
+      /**
+       * \brief Gets an edge intensity image from the height image, and at the
+       *        same time avoiding low level noise. This method is used as a
+       *        replacement for Canny, as the version of Canny inside OpenCV
+       *        requires 8bit images
+       */
+      void getDisparityImage(const cv::Mat& height_image, 
+          const cv::Mat& avg_image, cv::Mat& dst, float threshold);
 
       /** 
        * \brief For visualization only - do not use in production code

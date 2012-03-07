@@ -25,7 +25,7 @@ namespace velodyne_image {
    */
   void OverheadImageGenerator::getOverheadImages(
       const VPointCloud& cloud, cv::Mat& height_image,
-      cv::Mat& intensity_image) {
+      cv::Mat& disparity_image, cv::Mat& intensity_image) {
 
     int dim_size = config_.image_size;
 
@@ -213,8 +213,136 @@ namespace velodyne_image {
     // Assign values to the actual images
     fillImageValues(avg_image, config_.use_old_image, 
         temp_height, temp_intensity, height_image, intensity_image,
-        config_.mean, config_.sigma);
+        config_.mean, config_.sigma, false);
 
+    cv::Mat temp_disparity_image;
+    getDisparityImage(height_image, avg_image, temp_disparity_image, 0.05);
+    enhanceContrast(temp_disparity_image, disparity_image,
+        config_.disparity_mean, config_.disparity_sigma, true);
+
+  }
+
+  void OverheadImageGenerator::getDisparityImage(const cv::Mat& height_image,
+      const cv::Mat& avg_image, cv::Mat& dst, float threshold) {
+
+    int dim_size = config_.image_size;
+
+    cv::Mat count_height_diff = cv::Mat::zeros(dim_size, dim_size, CV_8U);
+    cv::Mat temp_height_diff = cv::Mat::zeros(dim_size, dim_size, CV_32F);
+
+    if (dst.size() != count_height_diff.size() || 
+        dst.type() != CV_32F ||
+        dst.data == NULL) {
+      dst = cv::Mat::zeros(count_height_diff.size(), CV_32F);
+    }
+
+    // Calculate disparity along each radial line
+    for (unsigned int heading_idx = 0; 
+         heading_idx < NUM_HEADINGS; ++heading_idx) {
+
+      // Find far external points on these radial lines
+      float heading = 
+        ((float) heading_idx) / NUM_HEADINGS * 
+        (2 * M_PI) - M_PI;
+      float max_distance = 100;
+      float prev_z = 0;
+      bool prev_z_available = false;
+
+      // TODO: these values can be cached as the headings/radials are fixed
+      float x = max_distance * cosf(heading);
+      float y = max_distance * sinf(heading);
+
+      int y_pxl = -x / config_.distance_per_pixel + dim_size / 2;
+      int x_pxl = -y / config_.distance_per_pixel + dim_size / 2;
+
+      int x_orig = dim_size / 2;
+      int y_orig = dim_size / 2;
+    
+      // Bresenham's again, except this stops when it finds points that have
+      // not been reached
+      int dx = abs(x_pxl - x_orig);
+      int dy = abs(y_pxl - y_orig);
+      int sx = -1 + 2 * (x_orig < x_pxl);
+      int sy = -1 + 2 * (y_orig < y_pxl);
+      int err = dx - dy;
+
+      bool not_reached_end_point = 
+        x_orig != x_pxl || y_orig != y_pxl;
+      bool not_reached_boundaries = 
+        x_orig < dim_size && x_orig >= 0 && 
+        y_orig < dim_size && y_orig >= 0;
+
+      while (not_reached_end_point && not_reached_boundaries) {
+
+        if (prev_z_available) {
+          if (avg_image.at<unsigned char>(y_orig,x_orig) != 0) { 
+            float z_diff = height_image.at<float>(y_orig,x_orig) - prev_z;
+            z_diff = (z_diff > threshold) ? z_diff : 0;
+            temp_height_diff.at<float>(y_orig,x_orig) += z_diff;
+            count_height_diff.at<unsigned char>(y_orig,x_orig) += 1;
+          }
+        }
+
+        if (avg_image.at<unsigned char>(y_orig,x_orig) != 0) {
+          prev_z = height_image.at<float>(y_orig,x_orig);
+          prev_z_available = true;
+        } else {
+          prev_z_available = false;
+        }
+
+        int e2 = 2 * err;
+        if (e2 > -dy) {
+          err = err - dy;
+          x_orig += sx;
+        }
+        if (e2 < dx) {
+          err = err + dx;
+          y_orig += sy;
+        }
+
+        // Recompute termination conditions
+        not_reached_end_point = 
+          x_orig != x_pxl || y_orig != y_pxl;
+        not_reached_boundaries = 
+          x_orig < dim_size && x_orig >= 0 && 
+          y_orig < dim_size && y_orig >= 0;
+
+      }
+
+      temp_height_diff.at<float>(dim_size / 2, dim_size / 2) = 0;
+      count_height_diff.at<unsigned char>(dim_size / 2, dim_size / 2) = 1;
+    } /* end heading_idx */
+
+    // Compute the destination image
+    for (int y = 0; y < count_height_diff.rows; ++y) {
+
+      // Get temp image pointers
+      unsigned char* count_height_row = count_height_diff.ptr<unsigned char>(y);
+      float* temp_height_row = temp_height_diff.ptr<float>(y);
+
+      // Get actual image pointers
+      float* dst_row = dst.ptr<float>(y);
+
+      for (int x = 0; x < count_height_diff.cols; ++x) {
+
+        if (count_height_row[x] == 0) {
+          dst_row[x] = 0;
+          continue;
+        }
+
+        // Height values
+        float z_diff = temp_height_row[x] / count_height_row[x];
+        // if (scale_values) {
+        //   float scaled_z = enhanceContrast(z, mean, sigma); 
+        //   height_row[x] = scaled_z;
+        // } else {
+        //   height_row[x] = z;
+        // }
+        dst_row[x] = z_diff;
+
+
+      } /* end x */
+    } /* end y */
   }
 
   /** 
@@ -227,6 +355,8 @@ namespace velodyne_image {
     bool config_bleeding = config_.prevent_bleeding;
     cv::Mat temp_intensity = 
       cv::Mat::zeros(prev_height_image.size(), prev_height_image.type());
+    cv::Mat temp_disparity = 
+      cv::Mat::zeros(prev_height_image.size(), prev_height_image.type());
    
     cv::Mat naive_image = 
       cv::Mat::zeros(prev_height_image.size(), prev_height_image.type());
@@ -236,17 +366,17 @@ namespace velodyne_image {
     config_.prevent_bleeding = false;
     cv::Mat overhead_image = 
       cv::Mat::zeros(prev_height_image.size(), prev_height_image.type());
-    getOverheadImages(cloud, overhead_image, temp_intensity);
+    getOverheadImages(cloud, overhead_image, temp_intensity, temp_disparity);
 
     config_.prevent_bleeding = true;
     cv::Mat noise_free_image = 
       cv::Mat::zeros(prev_height_image.size(), prev_height_image.type());
-    getOverheadImages(cloud, noise_free_image, temp_intensity);
+    getOverheadImages(cloud, noise_free_image, temp_intensity, temp_disparity);
 
     config_.use_old_image = true;
     cv::Mat odom_image;
     prev_height_image.copyTo(odom_image);
-    getOverheadImages(cloud, odom_image, temp_intensity);
+    getOverheadImages(cloud, odom_image, temp_intensity, temp_disparity);
 
     config_.use_old_image = config_use_old_image;
     config_.prevent_bleeding = config_bleeding;
