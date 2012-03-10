@@ -227,6 +227,7 @@ namespace velodyne_image {
     cv::Mat count_height_diff = cv::Mat::zeros(dim_size, dim_size, CV_8U);
     cv::Mat temp_height_diff = cv::Mat::zeros(dim_size, dim_size, CV_32F);
     cv::Mat temp_disparity_image = cv::Mat::zeros(dim_size, dim_size, CV_32F);
+    cv::Mat temp_disparity_image_2 = cv::Mat::zeros(dim_size, dim_size, CV_32F);
     cv::Mat is_first_diff = cv::Mat::zeros(dim_size, dim_size, CV_8U);
 
     if (dst.size() != count_height_diff.size() || 
@@ -295,6 +296,10 @@ namespace velodyne_image {
           prev_z_available = false;
         }
 
+        if (dst.at<float>(y_orig,x_orig) != 0) {
+          first_diff = false;
+        }
+
         int e2 = 2 * err;
         if (e2 > -dy) {
           err = err - dy;
@@ -330,10 +335,10 @@ namespace velodyne_image {
 
       for (int x = 0; x < count_height_diff.cols; ++x) {
 
-        if (count_height_row[x] == 0) {
-          dst_row[x] = 0;
-          continue;
-        }
+        // if (count_height_row[x] == 0) {
+        //   dst_row[x] = 15;
+        //   continue;
+        // }
 
         // Height values
         float z_diff = temp_height_row[x] / count_height_row[x];
@@ -349,17 +354,24 @@ namespace velodyne_image {
       } /* end x */
     } /* end y */
 
-    enhanceContrast(temp_disparity_image, dst,
+    enhanceContrast(temp_disparity_image, temp_disparity_image_2,
         config_.disparity_mean, config_.disparity_sigma, true);
 
     // Compute the destination image
     for (int y = 0; y < dst.rows; ++y) {
       // Get actual image pointers
       float* dst_row = dst.ptr<float>(y);
+      float* temp_row = temp_disparity_image_2.ptr<float>(y);
       unsigned char* is_first = is_first_diff.ptr<unsigned char>(y);
+      unsigned char* count_height_row = count_height_diff.ptr<unsigned char>(y);
       for (int x = 0; x < dst.cols; ++x) {
-        if (!is_first[x]) 
-          dst_row[x] /= 3;
+        if (count_height_row[x] == 0) {
+          // Do nothing
+        } else if (!is_first[x]) {
+          dst_row[x] = temp_row[x] / 3;
+        } else {
+          dst_row[x] = temp_row[x];
+        }
       } /* end x */
     } /* end y */
 

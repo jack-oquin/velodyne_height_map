@@ -117,8 +117,10 @@ void processPointCloud(const VPointCloud::ConstPtr& cloud) {
   transformation_.resize(2);
   if (height_image_.data != NULL)
     shiftImageByOdometry(height_image_, transformation_);
-  if (intensity_image_.data != NULL)
-    shiftImageByOdometry(intensity_image_, transformation_);
+  // if (intensity_image_.data != NULL)
+  //   shiftImageByOdometry(intensity_image_, transformation_);
+  if (disparity_image_.data != NULL)
+    shiftImageByOdometry(disparity_image_, transformation_);
   transformation_ = cv::Mat::eye(3,3,CV_64F);
 
   // Shift the image based on the affine transformation
@@ -137,7 +139,7 @@ void processPointCloud(const VPointCloud::ConstPtr& cloud) {
     velodyne_image::enhanceContrast(height_image_, display_height, 
         mean_, sigma_, false);
     cv::imshow("Height Image", display_height);
-    cv::imshow("Intensity Image", intensity_image_);
+    //cv::imshow("Intensity Image", intensity_image_);
     cv::imshow("Disparity Image", disparity_image_);
   }
 
@@ -151,11 +153,11 @@ void processPointCloud(const VPointCloud::ConstPtr& cloud) {
   height_publisher_.publish(height_msg.toImageMsg());
 
   // Publish intensity image
-  cv_bridge::CvImage intensity_msg;
-  intensity_msg.header = cloud->header;
-  intensity_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC1;
-  intensity_msg.image = intensity_image_; // Does not copy image data
-  intensity_publisher_.publish(intensity_msg.toImageMsg());
+  // cv_bridge::CvImage intensity_msg;
+  // intensity_msg.header = cloud->header;
+  // intensity_msg.encoding = sensor_msgs::image_encodings::TYPE_8UC1;
+  // intensity_msg.image = intensity_image_; // Does not copy image data
+  // intensity_publisher_.publish(intensity_msg.toImageMsg());
 
 }
 
@@ -226,9 +228,9 @@ int main(int argc, char *argv[]) {
     cv::namedWindow("Height Image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO |
                                     CV_GUI_NORMAL);
     cvResizeWindow("Height Image", 400, 400);
-    cv::namedWindow("Intensity Image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO |
-                                       CV_GUI_NORMAL);
-    cvResizeWindow("Intensity Image", 400, 400);
+    // cv::namedWindow("Intensity Image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO |
+    //                                    CV_GUI_NORMAL);
+    // cvResizeWindow("Intensity Image", 400, 400);
     cv::namedWindow("Disparity Image", CV_WINDOW_NORMAL | CV_WINDOW_KEEPRATIO |
                                        CV_GUI_NORMAL);
     cvResizeWindow("Disparity Image", 400, 400);
@@ -257,8 +259,8 @@ int main(int argc, char *argv[]) {
   image_transport::ImageTransport it = image_transport::ImageTransport(node);
   height_publisher_ = 
     it.advertise("velodyne_height/overhead/image_raw", q_depth_);
-  intensity_publisher_ = 
-    it.advertise("velodyne_intensity/overhead/image_raw", q_depth_);
+  // intensity_publisher_ = 
+  //   it.advertise("velodyne_intensity/overhead/image_raw", q_depth_);
 
   ROS_INFO_STREAM(NODE ": starting up");
   ros::spin();                          // handle incoming data
@@ -267,7 +269,7 @@ int main(int argc, char *argv[]) {
   // Shutdown displays on exit
   if (display_) {
     cvDestroyWindow("Height Image");
-    cvDestroyWindow("Intensity Image");
+    //cvDestroyWindow("Intensity Image");
     cvDestroyWindow("Disparity Image");
   }
 
