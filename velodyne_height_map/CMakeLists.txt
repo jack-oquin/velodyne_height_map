@@ -22,9 +22,18 @@ rosbuild_add_library(heightmap_nodelet
   src/heightmap_nodelet.cpp src/heightmap.cpp)
 
 # unit tests
+#
+# $ROS_BUILD_TEST_LABEL controls which label "make test" runs
+#
+#  * if unset, all tests run
+#  * tests labelled "pcap" require more processor time than the
+#    ROS build machines can reliably guarantee.
+#  * only unlabelled tests or those labelled "hudson" automatically
+#    run on the ROS build machines
+#
 add_subdirectory(tests)
-rosbuild_add_rostest(tests/heightmap_node_hz.test)
-rosbuild_add_rostest(tests/heightmap_nodelet_hz.test)
+rosbuild_add_rostest_labeled(pcap tests/heightmap_node_hz.test)
+rosbuild_add_rostest_labeled(pcap tests/heightmap_nodelet_hz.test)
 
 # parse check all the launch/*.launch files
 rosbuild_add_roslaunch_check(launch)
