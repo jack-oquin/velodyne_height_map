@@ -15,6 +15,7 @@
   <depend package="pcl"/>
   <depend package="pcl_ros"/>
   <depend package="rostest"/>
+  <depend package="sensor_msgs"/>
   <depend package="velodyne_driver"/>           <!-- for testing -->
   <depend package="velodyne_msgs"/>
   <depend package="velodyne_pointcloud"/>       <!-- for testing -->
