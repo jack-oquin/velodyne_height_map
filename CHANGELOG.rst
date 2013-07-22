@@ -11,5 +11,5 @@ Change history
 0.3.0
 -----
 
- * rosbuild version
- * Supported ROS Electric, Fuerte and Groovy distributions.
+ * Rosbuild version, included in ``velodyne_utils`` stack, which was
+   supported for the ROS Electric, Fuerte and Groovy distributions.
