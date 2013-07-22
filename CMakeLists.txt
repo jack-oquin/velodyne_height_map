@@ -1,32 +1,73 @@
-cmake_minimum_required(VERSION 2.4.6)
-include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+cmake_minimum_required(VERSION 2.8.3)
+project(velodyne_height_map)
 
-rosbuild_init()
-rosbuild_make_distribution(0.3.0)
+set(${PROJECT_NAME}_CATKIN_DEPS
+    nodelet
+    roscpp
+    pcl_ros
+    sensor_msgs
+    tf
+    velodyne_driver
+    velodyne_pointcloud)
 
-#set the default path for built executables to the "bin" directory
-set(EXECUTABLE_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/bin)
-#set the default path for built libraries to the "lib" directory
-set(LIBRARY_OUTPUT_PATH ${PROJECT_SOURCE_DIR}/lib)
+find_package(catkin REQUIRED COMPONENTS
+             ${${PROJECT_NAME}_CATKIN_DEPS}
+             angles
+             pcl_conversions
+             roslaunch rostest)
+find_package(Boost)
+find_package(PCL REQUIRED QUIET COMPONENTS common)
 
-rosbuild_add_executable(heightmap_node
-  src/heightmap_node.cpp src/heightmap.cpp)
-rosbuild_add_library(heightmap_nodelet
-  src/heightmap_nodelet.cpp src/heightmap.cpp)
+include_directories(include
+                    ${Boost_INCLUDE_DIR}
+                    ${catkin_INCLUDE_DIRS}
+                    ${PCL_INCLUDE_DIR})
+
+catkin_package(CATKIN_DEPENDS ${${PROJECT_NAME}_CATKIN_DEPS})
+
+add_executable(heightmap_node src/heightmap_node.cpp src/heightmap.cpp)
+target_link_libraries(heightmap_node
+                      ${catkin_LIBRARIES}
+                      ${Boost_LIBRARIES}
+                      ${PCL_LIBRARIES})
+
+add_library(heightmap_nodelet src/heightmap_nodelet.cpp src/heightmap.cpp)
+target_link_libraries(heightmap_nodelet
+                      ${catkin_LIBRARIES}
+                      ${Boost_LIBRARIES}
+                      ${PCL_LIBRARIES})
+
+# install the files needed to run this package
+install(TARGETS heightmap_node
+        RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+install(TARGETS heightmap_nodelet
+        RUNTIME DESTINATION ${CATKIN_GLOBAL_BIN_DESTINATION}
+        ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
+        LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION})
+install(FILES nodelets.xml
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION})
+install(DIRECTORY launch/
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch)
 
 # unit tests
-#
-# $ROS_BUILD_TEST_LABEL controls which label "make test" runs
-#
-#  * if unset, all tests run
-#  * tests labelled "pcap" require more processor time than the
-#    ROS build machines can reliably guarantee.
-#  * only unlabelled tests or those labelled "hudson" automatically
-#    run on the ROS build machines
-#
-add_subdirectory(tests)
-rosbuild_add_rostest_labeled(pcap tests/heightmap_node_hz.test)
-rosbuild_add_rostest_labeled(pcap tests/heightmap_nodelet_hz.test)
+if (CATKIN_ENABLE_TESTING)
+  message("${PROJECT_NAME} unit testing enabled")
 
-# parse check all the launch/*.launch files
-rosbuild_add_roslaunch_check(launch)
+  # Download a packet capture (PCAP) file containing test data.
+  # Store it in devel-space, so rostest can easily find them.
+  catkin_download_test_data(
+    ${PROJECT_NAME}_tests_class.pcap
+    http://pr.willowgarage.com/data/velodyne/class.pcap
+    DESTINATION ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/tests
+    MD5 65808d25772101358a3719b451b3d015)
+  
+  # declare rostest scripts
+  add_rostest(tests/heightmap_node_hz.test)
+  add_rostest(tests/heightmap_nodelet_hz.test)
+  
+  # parse check all the launch/*.launch files
+  ##roslaunch_add_file_check(launch)
+
+else ()
+  message("${PROJECT_NAME} unit testing disabled")
+endif (CATKIN_ENABLE_TESTING)
