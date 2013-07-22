@@ -6,9 +6,7 @@ set(${PROJECT_NAME}_CATKIN_DEPS
     roscpp
     pcl_ros
     sensor_msgs
-    tf
-    velodyne_driver
-    velodyne_pointcloud)
+    tf)
 
 find_package(catkin REQUIRED COMPONENTS
              ${${PROJECT_NAME}_CATKIN_DEPS}
