@@ -11,7 +11,7 @@
   <!-- start nodelet manager and driver nodelets -->
   <include file="$(find velodyne_driver)/launch/nodelet_manager.launch">
     <arg name="pcap"
-           value="$(find velodyne_pointcloud)/tests/class.pcap"/>
+           value="$(find velodyne_height_map)/tests/class.pcap"/>
   </include>
 
   <!-- start cloud nodelet using test calibration file -->
