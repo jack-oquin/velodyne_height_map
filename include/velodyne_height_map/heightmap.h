@@ -1,5 +1,5 @@
 /* -*- mode: C++ -*- */
-/*  Copyright (C) 2010 UT-Austin &  Austin Robot Technology,
+/*  Copyright (C) 2010 UT-Austin & Austin Robot Technology,
  *  David Claridge, Michael Quinlan
  * 
  *  License: Modified BSD Software License 
@@ -11,7 +11,6 @@
 
 #include <ros/ros.h>
 #include <pcl_ros/point_cloud.h>
-#include <pcl/point_types.h>
 
 namespace velodyne_height_map {
 
