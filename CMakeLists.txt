@@ -55,7 +55,7 @@ if (CATKIN_ENABLE_TESTING)
   # Store it in devel-space, so rostest can easily find it.
   catkin_download_test_data(
     ${PROJECT_NAME}_tests_class.pcap
-    http://pr.willowgarage.com/data/velodyne/class.pcap
+    http://download.ros.org/data/velodyne/class.pcap
     DESTINATION ${CATKIN_DEVEL_PREFIX}/${CATKIN_PACKAGE_SHARE_DESTINATION}/tests
     MD5 65808d25772101358a3719b451b3d015)
   
